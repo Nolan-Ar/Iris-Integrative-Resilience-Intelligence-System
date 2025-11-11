@@ -273,8 +273,8 @@ class CatastropheManager:
                     agent.remove_asset(destroyed_asset.id)
                     impacts['asset_destruction'] += 1
 
-                # Mortalite accrue
-                if ages[agent_id] > 50 and np.random.random() < event.magnitude * 0.1:
+                # Mortalite accrue (seulement si ages disponible)
+                if ages and agent_id in ages and ages[agent_id] > 50 and np.random.random() < event.magnitude * 0.1:
                     impacts['deaths'] += 1
 
         elif event.catastrophe_type == CatastropheType.PANDEMIC:
@@ -282,11 +282,12 @@ class CatastropheManager:
             for agent_id in affected_ids:
                 agent = agents[agent_id]
 
-                # Mortalite (surtout les ages)
-                age = ages[agent_id]
-                death_risk = event.magnitude * 0.2 * (1 + age / 100)
-                if np.random.random() < death_risk:
-                    impacts['deaths'] += 1
+                # Mortalite (surtout les ages) - seulement si demographie activee
+                if ages and agent_id in ages:
+                    age = ages[agent_id]
+                    death_risk = event.magnitude * 0.2 * (1 + age / 100)
+                    if np.random.random() < death_risk:
+                        impacts['deaths'] += 1
 
                 # Perte economique (baisse production)
                 production_loss = event.magnitude * 0.3
