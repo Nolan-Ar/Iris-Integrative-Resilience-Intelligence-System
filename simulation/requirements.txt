@@ -1,0 +1,17 @@
+# IRIS Economic System Simulation - Dependencies
+# ===============================================
+
+# Core scientific computing
+numpy>=1.21.0
+pandas>=1.3.0
+
+# Visualization
+matplotlib>=3.4.0
+seaborn>=0.11.0
+
+# Data export (already included with pandas, but explicit)
+# openpyxl>=3.0.0  # For Excel export (optional)
+
+# For notebook support (optional)
+# jupyter>=1.0.0
+# ipython>=7.0.0
