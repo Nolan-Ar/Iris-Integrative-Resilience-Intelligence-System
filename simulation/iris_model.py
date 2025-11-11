@@ -47,73 +47,161 @@ class DebtComponent(Enum):
 
 @dataclass
 class Asset:
-    """Représente un actif dans le système IRIS"""
-    id: str
-    asset_type: AssetType
-    real_value: float  # Valeur réelle dans le monde physique
-    V_initial: float = 0.0  # V₀ : Verum d'initialisation
-    D_initial: float = 0.0  # D₀ : Miroir thermométrique initial
-    owner_id: str = ""
-    nft_hash: str = ""  # Empreinte cryptographique du NFT fondateur
-    auth_factor: float = 1.0  # Facteur d'authentification
-    creation_time: int = 0
+    """
+    Représente un actif dans le système IRIS
+
+    Un actif est un bien réel (terrain, immeuble, entreprise, etc.) qui est
+    ancré dans le système via l'Oracle d'initialisation. Chaque actif génère :
+    - Un Verum (V) : la mémoire de sa valeur
+    - Un miroir thermométrique (D) : l'indicateur de régulation associé
+    - Un NFT fondateur : preuve cryptographique d'existence unique
+    """
+    id: str  # Identifiant unique de l'actif
+    asset_type: AssetType  # Type d'actif (immobilier, mobilier, etc.)
+    real_value: float  # Valeur réelle dans le monde physique (en unités monétaires classiques)
+    V_initial: float = 0.0  # V₀ : Verum d'initialisation (mémoire de valeur IRIS)
+    D_initial: float = 0.0  # D₀ : Miroir thermométrique initial (indicateur de régulation)
+    owner_id: str = ""  # Identifiant du propriétaire
+    nft_hash: str = ""  # Empreinte cryptographique du NFT fondateur (SHA-256)
+    auth_factor: float = 1.0  # Facteur d'authentification (1.0 = source officielle, <1.0 = auto-déclaration)
+    creation_time: int = 0  # Moment de l'ancrage dans le système
 
     def __post_init__(self):
-        """Initialise V₀ et D₀ selon les règles IRIS"""
+        """
+        Initialise V₀ et D₀ selon les règles IRIS
+
+        Principe fondamental : Équilibre initial ΣV₀ = ΣD₀
+        Cette égalité garantit que le thermomètre θ = D/V démarre à 1.0
+        """
         if self.V_initial == 0.0:
-            # Formule : V_IRIS = V_asset × facteur_or × ajustement_thermométrique × auth_factor
-            # Pour simplification, on utilise directement real_value avec auth_factor
+            # Conversion de la valeur réelle en Verum IRIS
+            # Formule complète : V_IRIS = V_asset × facteur_or × ajustement_thermométrique × auth_factor
+            # Pour simplification dans cette simulation, on utilise directement real_value × auth_factor
             self.V_initial = self.real_value * self.auth_factor
-            self.D_initial = self.V_initial  # Équilibre initial : D₀ = V₀
+
+            # Création du miroir thermométrique : D₀ = V₀
+            # Ce miroir n'est PAS une dette exigible, mais un indicateur de régulation
+            # Il permet au RAD de mesurer la tension thermométrique du système
+            self.D_initial = self.V_initial
 
 
 @dataclass
 class Agent:
-    """Représente un agent économique dans le système"""
-    id: str
-    V_balance: float = 0.0  # Solde en Verum (mémoire de valeur)
-    U_balance: float = 0.0  # Solde en Usage (monnaie d'usage)
-    assets: List[Asset] = field(default_factory=list)
-    contribution_score: float = 0.0  # Score de contribution prouvée
+    """
+    Représente un agent économique dans le système IRIS
+
+    Un agent est une personne ou une entité qui possède :
+    - Des actifs réels (ancré dans le système)
+    - Un solde V (Verum) : mémoire de valeur, patrimoine ancré
+    - Un solde U (Usage) : monnaie d'usage, liquidité pour transactions
+    - Un score de contribution : mesure des actes prouvés
+
+    L'agent peut :
+    - Convertir V en U (activer son patrimoine)
+    - Reconvertir U en V (épargner, investir)
+    - Effectuer des transactions en U
+    - Recevoir le revenu universel
+    """
+    id: str  # Identifiant unique de l'agent
+    V_balance: float = 0.0  # Solde en Verum (patrimoine, mémoire de valeur)
+    U_balance: float = 0.0  # Solde en Usage (liquidité, monnaie de transaction)
+    assets: List[Asset] = field(default_factory=list)  # Liste des actifs possédés
+    contribution_score: float = 0.0  # Score de contribution prouvée (pour gouvernance future)
 
     def add_asset(self, asset: Asset):
-        """Ajoute un actif et met à jour le solde V"""
+        """
+        Ajoute un actif et met à jour le solde V
+
+        Quand un agent ancre un nouvel actif :
+        - L'actif est ajouté à sa liste
+        - Son V_balance augmente du V₀ de l'actif
+        - Le système global gagne V₀ en circulation et D₀ dans le RAD
+        """
         self.assets.append(asset)
-        self.V_balance += asset.V_initial
+        self.V_balance += asset.V_initial  # Crédite le Verum d'initialisation
 
     def total_wealth(self) -> float:
-        """Richesse totale (V + U)"""
+        """
+        Richesse totale de l'agent (V + U)
+
+        La richesse totale combine :
+        - V : patrimoine ancré (épargne, actifs)
+        - U : liquidité (argent de poche)
+        Cette somme est utilisée pour calculer le revenu universel
+        """
         return self.V_balance + self.U_balance
 
 
 @dataclass
 class RADState:
-    """État du Régulateur Automatique Décentralisé"""
-    # Composantes de D (miroir thermométrique)
-    D_materielle: float = 0.0
-    D_services: float = 0.0
-    D_contractuelle: float = 0.0
-    D_engagement: float = 0.0
-    D_regulatrice: float = 0.0
+    """
+    État du Régulateur Automatique Décentralisé (RAD)
 
-    # Paramètres de régulation
-    kappa: float = 1.0  # Coefficient de conversion V -> U
-    T_period: int = 100  # Périodicité de régulation
-    dissipation_rate: float = 0.02  # Taux de dissipation thermodynamique
+    Le RAD est le cœur du système IRIS. C'est un mécanisme autonome
+    qui maintient l'équilibre thermodynamique en ajustant les paramètres
+    du système selon la tension mesurée.
+
+    Analogie : Le RAD joue le rôle d'un thermostat pour l'économie.
+    - Si θ > 1 (trop de demande) → il refroidit (réduit κ)
+    - Si θ < 1 (trop d'offre) → il réchauffe (augmente κ)
+
+    Composantes de D (miroir thermométrique sectoriel) :
+    - D_materielle : Biens physiques (terrains, immeubles)
+    - D_services : Flux d'entretien et services
+    - D_contractuelle : Titres et promesses productives
+    - D_engagement : Staking et engagements
+    - D_regulatrice : Chambre de relance (revenu universel)
+    """
+    # Composantes sectorielles du miroir thermométrique D
+    # Chaque composante suit un type spécifique d'actifs/transactions
+    D_materielle: float = 0.0  # Dette thermométrique des biens matériels
+    D_services: float = 0.0  # Dette thermométrique des services
+    D_contractuelle: float = 0.0  # Dette thermométrique des contrats
+    D_engagement: float = 0.0  # Dette thermométrique des engagements
+    D_regulatrice: float = 0.0  # Dette thermométrique de la régulation (RU, dissipation)
+
+    # Paramètres de régulation du système
+    kappa: float = 1.0  # Coefficient de conversion V → U (κ, kappa)
+    T_period: int = 100  # Périodicité de régulation profonde (tous les N pas)
+    dissipation_rate: float = 0.02  # Taux de dissipation thermodynamique (friction, 2%)
 
     def total_D(self) -> float:
-        """Dette thermométrique totale"""
+        """
+        Calcule la dette thermométrique totale D
+
+        D = somme de toutes les composantes sectorielles
+        D est utilisé pour calculer le thermomètre : θ = D/V
+
+        Note : D n'est PAS une dette au sens juridique, c'est un
+        indicateur de régulation (miroir thermométrique)
+        """
         return (self.D_materielle + self.D_services + self.D_contractuelle +
                 self.D_engagement + self.D_regulatrice)
 
     def update_kappa(self, thermometer: float, target: float = 1.0):
         """
-        Mise à jour du coefficient kappa selon la tension thermométrique
-        Mécanisme contracyclique : si thermomètre > 1, on réduit kappa
+        Mise à jour du coefficient κ (kappa) selon la tension thermométrique
+
+        Principe CONTRACYCLIQUE (stabilisateur automatique) :
+        - Si θ > 1 (excès de demande) → κ diminue → ralentit conversion V→U
+        - Si θ < 1 (déficit de demande) → κ augmente → accélère conversion V→U
+
+        Formule de rétroaction négative :
+        κ(t+1) = κ(t) × (1 - α × (θ(t) - 1))
+        avec α = 0.1 (coefficient de rétroaction)
+
+        Limites : κ ∈ [0.1, 2.0] pour éviter les divergences
         """
+        # Calcul de la déviation par rapport à la cible (normalement θ = 1)
         deviation = thermometer - target
-        # Ajustement proportionnel avec limitation
-        adjustment = -0.1 * deviation  # Coefficient de rétroaction
+
+        # Ajustement proportionnel à la déviation (rétroaction négative)
+        # Si deviation > 0 (θ > 1) → adjustment < 0 → κ diminue
+        # Si deviation < 0 (θ < 1) → adjustment > 0 → κ augmente
+        adjustment = -0.1 * deviation  # α = 0.1 (coefficient de rétroaction)
+
+        # Application de l'ajustement avec bornes de sécurité
+        # κ ne peut pas descendre sous 0.1 ni monter au-dessus de 2.0
         self.kappa = max(0.1, min(2.0, self.kappa * (1 + adjustment)))
 
 
@@ -164,44 +252,74 @@ class IRISEconomy:
         self._initialize_agents(initial_agents)
 
     def _initialize_agents(self, n_agents: int):
-        """Crée les agents initiaux avec des actifs distribués"""
-        np.random.seed(42)  # Pour la reproductibilité
+        """
+        Crée les agents initiaux avec des actifs distribués de manière réaliste
+
+        Cette fonction simule l'Oracle d'initialisation en créant :
+        - Des agents avec des identités uniques
+        - Des actifs de différents types (immobilier, mobilier, entreprises, etc.)
+        - Une distribution log-normale des richesses (réaliste : peu de riches, beaucoup de pauvres)
+
+        Processus :
+        1. Pour chaque agent :
+           - Génère 1-3 actifs (distribution de Poisson)
+           - Chaque actif a une valeur log-normale (réaliste)
+           - Chaque actif génère V₀ et D₀ égaux
+        2. Les D₀ sont répartis dans le RAD selon le type d'actif
+        3. Vérification finale : ΣV₀ = ΣD₀
+        """
+        np.random.seed(42)  # Fixe la graine pour reproductibilité des résultats
 
         for i in range(n_agents):
+            # Crée un nouvel agent
             agent = Agent(id=f"agent_{i}")
 
             # Distribution log-normale des richesses (réaliste)
-            n_assets = np.random.poisson(2) + 1
+            # La plupart des agents ont peu d'actifs, quelques-uns en ont beaucoup
+            n_assets = np.random.poisson(2) + 1  # 1 à ~5 actifs (moyenne 3)
 
             for j in range(n_assets):
+                # Type d'actif aléatoire (immobilier, mobilier, entreprise, etc.)
                 asset_type = np.random.choice(list(AssetType))
-                real_value = np.random.lognormal(10, 1.5)  # Distribution réaliste
 
+                # Valeur réelle log-normale : e^(10 ± 1.5)
+                # Produit une distribution réaliste : beaucoup de petits actifs, peu de grands
+                real_value = np.random.lognormal(10, 1.5)
+
+                # Crée l'actif avec sa preuve d'existence
                 asset = Asset(
                     id=f"asset_{i}_{j}",
                     asset_type=asset_type,
                     real_value=real_value,
                     owner_id=agent.id,
-                    auth_factor=np.random.uniform(0.9, 1.0),
-                    creation_time=0
+                    auth_factor=np.random.uniform(0.9, 1.0),  # Facteur d'authentification (90-100%)
+                    creation_time=0  # Tous ancrés au temps 0 (initialisation)
                 )
 
+                # Ajoute l'actif à l'agent (génère V₀)
                 agent.add_asset(asset)
+                # Enregistre l'actif dans le système
                 self.assets[asset.id] = asset
 
-                # Mise à jour du RAD selon le type d'actif
+                # Mise à jour du RAD : distribue D₀ dans la bonne composante
+                # Selon le type d'actif, D₀ va dans une composante sectorielle différente
                 if asset_type == AssetType.IMMOBILIER or asset_type == AssetType.MOBILIER:
+                    # Biens physiques → D_materielle
                     self.rad.D_materielle += asset.D_initial
                 elif asset_type == AssetType.SERVICE:
+                    # Services → D_services
                     self.rad.D_services += asset.D_initial
                 elif asset_type == AssetType.ENTREPRISE:
+                    # Entreprises → D_contractuelle
                     self.rad.D_contractuelle += asset.D_initial
                 else:
+                    # Par défaut → D_materielle
                     self.rad.D_materielle += asset.D_initial
 
+            # Enregistre l'agent dans le système
             self.agents[agent.id] = agent
 
-        # Vérification de l'équilibre initial
+        # Vérification critique : l'équilibre initial doit être respecté
         self._verify_initial_balance()
 
     def _verify_initial_balance(self):
@@ -218,20 +336,46 @@ class IRISEconomy:
         """
         Calcul du thermomètre global : θ = D / V_circulation
 
+        Le thermomètre est LA MÉTRIQUE CENTRALE du système IRIS.
+        Il mesure la tension thermodynamique de l'économie :
+
+        θ = D_total / V_circulation
+
+        Interprétation :
+        - θ = 1.0 : Équilibre parfait (cible)
+        - θ > 1.0 : Excès de demande / pénurie de patrimoine actif
+        - θ < 1.0 : Excès d'offre / patrimoine immobilisé
+
+        Analogie : θ est comme la température d'un système thermodynamique.
+        Le RAD agit comme un thermostat pour maintenir θ proche de 1.
+
         Returns:
             Ratio D/V (devrait être proche de 1 en équilibre)
         """
+        # Somme de tous les V en circulation (patrimoine actif des agents)
         V_circulation = sum(agent.V_balance for agent in self.agents.values())
+
+        # Somme de tous les D dans le RAD (miroir thermométrique total)
         total_D = self.rad.total_D()
 
+        # Cas limite : si V est presque nul, on retourne 1.0 par défaut
         if V_circulation < 1e-6:
             return 1.0
 
+        # Calcul du thermomètre : θ = D/V
         return total_D / V_circulation
 
     def indicator(self) -> float:
         """
         Indicateur centré : I = θ - 1
+
+        L'indicateur mesure la DÉVIATION par rapport à l'équilibre :
+        - I = 0 : Système en équilibre parfait
+        - I > 0 : Tension positive (θ > 1), excès de demande
+        - I < 0 : Tension négative (θ < 1), excès d'offre
+
+        L'indicateur est utilisé par le RAD pour décider des ajustements.
+        Objectif : maintenir |I| < 0.1 (déviation < 10%)
 
         Returns:
             Déviation du thermomètre par rapport à l'équilibre (0 = équilibre parfait)
@@ -242,17 +386,37 @@ class IRISEconomy:
         """
         Calcul du coefficient de Gini pour mesurer les inégalités
 
+        Le coefficient de Gini mesure la distribution des richesses :
+        - 0.0 : Égalité parfaite (tous ont la même richesse)
+        - 1.0 : Inégalité maximale (une personne a tout)
+
+        Dans IRIS, le Gini devrait diminuer grâce au revenu universel
+        et à la redistribution thermodynamique.
+
+        Formule de Gini :
+        G = (2 × Σ(i × w_i)) / (n × Σw_i) - (n+1)/n
+
+        où w_i est la richesse de l'agent i (classé par richesse croissante)
+
         Returns:
             Coefficient entre 0 (égalité parfaite) et 1 (inégalité maximale)
         """
+        # Récupère toutes les richesses (V + U) de chaque agent
         wealths = np.array([agent.total_wealth() for agent in self.agents.values()])
+
+        # Trie par richesse croissante (nécessaire pour le calcul de Gini)
         wealths = np.sort(wealths)
         n = len(wealths)
 
+        # Cas limite : richesse totale nulle
         if wealths.sum() < 1e-6:
             return 0.0
 
+        # Calcul du coefficient de Gini
+        # cumsum[- 1] = somme totale des richesses
         cumsum = np.cumsum(wealths)
+
+        # Formule de Gini :  2 × Σ(rang × richesse) / (n × total) - (n+1)/n
         return (2 * np.sum((np.arange(1, n+1)) * wealths)) / (n * cumsum[-1]) - (n + 1) / n
 
     def circulation_rate(self) -> float:
