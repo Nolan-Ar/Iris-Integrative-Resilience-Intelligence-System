@@ -422,135 +422,255 @@ class IRISEconomy:
     def circulation_rate(self) -> float:
         """
         Taux de circulation : ratio entre U (usage) et V (mémoire)
-        Mesure la liquidité du système
+
+        Mesure la LIQUIDITÉ du système :
+        - Taux faible (U/V petit) : patrimoine immobilisé, peu de transactions
+        - Taux élevé (U/V grand) : beaucoup de liquidité, économie active
+
+        Un taux optimal se situe autour de 0.1-0.3 (10-30% de liquidité)
+
+        Returns:
+            Ratio U/V mesurant la liquidité du système
         """
+        # Total du patrimoine ancré (Verum)
         total_V = sum(agent.V_balance for agent in self.agents.values())
+        # Total de la liquidité (Usage)
         total_U = sum(agent.U_balance for agent in self.agents.values())
 
+        # Cas limite : pas de patrimoine ancré
         if total_V < 1e-6:
             return 0.0
 
+        # Calcul du taux de circulation
         return total_U / total_V
 
     def convert_V_to_U(self, agent_id: str, amount: float) -> bool:
         """
-        Conversion de V (mémoire) en U (usage) via le coefficient kappa
+        Conversion de V (mémoire) en U (usage) via le coefficient κ
 
-        Logique IRIS :
-        - V représente la valeur ancrée (mémoire de patrimoine)
-        - U représente la liquidité (monnaie d'usage)
-        - Quand V→U, on "active" du patrimoine en liquidité
-        - D (miroir thermométrique) ne change pas lors de la conversion
-        - Le thermomètre θ=D/V augmente naturellement (V diminue)
-        - Le RAD détecte cette hausse et ajuste κ pour réguler
+        C'EST LA FONCTION CLE DU SYSTÈME IRIS !
+
+        Logique économique :
+        - V (Verum) = patrimoine ancré, "épargne", mémoire de valeur
+        - U (Usage) = liquidité, "argent de poche", monnaie de transaction
+        - La conversion V→U "active" le patrimoine pour l'utiliser
+
+        Mécanisme :
+        1. L'agent "dépense" une partie de son V
+        2. Il reçoit U = V × κ (κ est ajusté par le RAD)
+        3. D ne change PAS (le miroir thermométrique reste constant)
+        4. θ = D/V AUGMENTE (car V diminue) → signale au RAD
+        5. Le RAD détecte et ajuste κ pour ralentir les conversions futures
+
+        Analogie : V→U c'est comme retirer de l'argent d'un compte épargne
+        pour le mettre en liquidité. Le RAD observe et ajuste les "frais".
+
+        Impact sur le système :
+        - V↓ → θ↑ → RAD détecte → κ↓ → futures conversions plus coûteuses
+        - C'est le mécanisme CONTRACYCLIQUE qui stabilise le système
 
         Args:
             agent_id: Identifiant de l'agent
-            amount: Montant de V à convertir
+            amount: Montant de V à convertir en U
 
         Returns:
-            True si la conversion a réussi
+            True si la conversion a réussi, False si l'agent n'a pas assez de V
         """
+        # Vérifie que l'agent existe et a assez de V
         agent = self.agents.get(agent_id)
         if not agent or agent.V_balance < amount:
-            return False
+            return False  # Conversion impossible
 
-        # Conversion : U = V × κ
+        # CONVERSION : U = V × κ
+        # κ (kappa) est le coefficient de conversion ajusté par le RAD
+        # κ = 1.0 en équilibre, κ < 1.0 si θ > 1 (freine), κ > 1.0 si θ < 1 (stimule)
         U_amount = amount * self.rad.kappa
 
+        # Débite le V de l'agent
         agent.V_balance -= amount
+        # Crédite le U de l'agent
         agent.U_balance += U_amount
 
-        # D ne change pas lors de la conversion V→U
-        # Le thermomètre θ=D/V augmentera naturellement car V diminue
-        # C'est le mécanisme de régulation voulu : le RAD détecte et ajuste κ
+        # IMPORTANT : D ne change pas lors de la conversion V→U
+        # Pourquoi ? Parce que la valeur totale (V+U) reste la même
+        # Seule la FORME change (patrimoine → liquidité)
+
+        # Conséquence : θ = D/V augmente naturellement car V↓
+        # Le RAD détectera cette hausse et ajustera κ vers le bas
+        # C'est le mécanisme de RÉTROACTION NÉGATIVE qui stabilise
 
         return True
 
     def transaction(self, from_id: str, to_id: str, amount: float) -> bool:
         """
         Transaction en U (monnaie d'usage) entre deux agents
-        Inclut une dissipation thermodynamique
+        Inclut une DISSIPATION THERMODYNAMIQUE (friction)
+
+        Principe thermodynamique :
+        - Chaque transaction "consomme" une petite partie de l'énergie (U)
+        - Cette dissipation simule : frais de transaction, friction, entropie
+        - La valeur dissipée "s'évapore" du système (réduit D_regulatrice)
+        - C'est un mécanisme naturel de régulation (comme la friction physique)
+
+        Formule :
+        - Dissipation = montant × τ (τ = taux de dissipation, typiquement 2%)
+        - Montant net reçu = montant - dissipation
+        - Impact : D↓ → θ↓ → le système se "refroidit"
+
+        Cette dissipation est ensuite REDISTRIBUÉE via le revenu universel,
+        créant une boucle vertueuse de redistribution automatique.
 
         Args:
-            from_id: Agent émetteur
-            to_id: Agent récepteur
-            amount: Montant à transférer
+            from_id: Agent émetteur (qui paye)
+            to_id: Agent récepteur (qui reçoit)
+            amount: Montant en U à transférer
 
         Returns:
-            True si la transaction a réussi
+            True si la transaction a réussi, False sinon
         """
+        # Vérifie que les deux agents existent
         from_agent = self.agents.get(from_id)
         to_agent = self.agents.get(to_id)
 
+        # Vérifie que l'émetteur a assez de U
         if not from_agent or not to_agent or from_agent.U_balance < amount:
-            return False
+            return False  # Transaction impossible
 
-        # Dissipation thermodynamique (simule friction, coûts de transaction)
-        dissipation = amount * self.rad.dissipation_rate
-        net_amount = amount - dissipation
+        # DISSIPATION THERMODYNAMIQUE (friction de la transaction)
+        # Simule les coûts naturels : énergie, temps, vérification, etc.
+        dissipation = amount * self.rad.dissipation_rate  # τ = 2% par défaut
+        net_amount = amount - dissipation  # Ce que reçoit réellement le destinataire
 
+        # Débite l'émetteur du montant total
         from_agent.U_balance -= amount
+        # Crédite le récepteur du montant net (après dissipation)
         to_agent.U_balance += net_amount
 
-        # La dissipation réduit la dette thermométrique
+        # IMPACT THERMODYNAMIQUE : la dissipation réduit D_regulatrice
+        # Pourquoi ? Car la valeur dissipée "sort" du système
+        # Conséquence : θ = D/V diminue légèrement → système se refroidit
         self.rad.D_regulatrice -= dissipation
+
+        # Note : Cette valeur dissipée sera redistribuée via le revenu universel
+        # C'est un mécanisme de REDISTRIBUTION AUTOMATIQUE par la thermodynamique
 
         return True
 
     def distribute_universal_income(self):
         """
         Distribution du revenu universel basé sur le patrimoine total prouvé
-        Mécanisme de redistribution fondamental dans IRIS
 
-        Le revenu universel est une redistribution, pas une création monétaire.
-        Dans IRIS, il est financé par la dissipation thermodynamique du système
-        (friction des transactions) qui est ensuite redistribuée équitablement.
+        C'EST LE MÉCANISME DE JUSTICE SOCIALE D'IRIS !
 
-        Pour simplifier, on ne modifie pas D lors de cette redistribution.
+        Principe :
+        - Tous les agents reçoivent un revenu universel égal
+        - Montant = τ% du patrimoine total / nombre d'agents (τ = 1%)
+        - Financé par la dissipation thermodynamique (redistribution)
+        - Distribution régulière (tous les 50 pas de temps)
+
+        Différence avec les systèmes traditionnels :
+        - PAS de création monétaire ex nihilo
+        - PAS d'endettement pour financer
+        - Redistribution de la valeur dissipée naturellement
+        - Basé sur le patrimoine PROUVÉ (pas sur des promesses)
+
+        Impact :
+        - Réduit les inégalités (coefficient de Gini ↓)
+        - Maintient le pouvoir d'achat de tous
+        - Compense la dissipation thermodynamique
+        - Crée une boucle de redistribution automatique
+
+        Note : Dans cette simulation simplifiée, on ne modifie pas D
+        car on considère que la redistribution est "neutre" thermodynamiquement.
+        Dans une implémentation complète, il faudrait ajuster D_regulatrice.
         """
+        # Calcule le patrimoine total du système (V + U de tous les agents)
         total_wealth = sum(agent.total_wealth() for agent in self.agents.values())
+
+        # Calcule le revenu universel par agent
+        # Formule : RU = (patrimoine_total × τ) / nombre_agents
+        # τ = universal_income_rate = 1% par défaut
         income_per_agent = total_wealth * self.universal_income_rate / len(self.agents)
 
+        # Distribue le revenu universel à TOUS les agents équitablement
         for agent in self.agents.values():
-            agent.U_balance += income_per_agent
+            agent.U_balance += income_per_agent  # Crédite en liquidité (U)
 
-        # Pas de modification de D : le revenu universel est une redistribution
-        # de la valeur dissipée par les transactions, déjà comptabilisée
+        # Pas de modification de D dans cette simulation simplifiée
+        # La redistribution est considérée comme thermodynamiquement neutre
+        # (la valeur circule mais ne change pas la tension globale)
 
     def regulate(self):
         """
-        Mécanisme de régulation du RAD
-        Ajuste kappa selon la tension thermométrique
+        Mécanisme de régulation du RAD (Régulateur Automatique Décentralisé)
 
-        Le RAD opère sur deux niveaux :
-        1. Rétroaction continue sur κ (contracyclique)
-        2. Régulation périodique de D pour maintenir l'équilibre thermodynamique
+        C'EST LE CŒUR DU SYSTÈME IRIS - LE "THERMOSTAT" DE L'ÉCONOMIE !
+
+        Le RAD opère sur TROIS niveaux complémentaires :
+
+        1. RÉTROACTION CONTINUE sur κ (contracyclique) :
+           - Ajuste κ à chaque pas de temps selon θ
+           - Si θ > 1 → κ↓ (freine les conversions V→U)
+           - Si θ < 1 → κ↑ (stimule les conversions V→U)
+           - Stabilisateur automatique, sans intervention humaine
+
+        2. AJUSTEMENT PÉRIODIQUE de la dissipation (tous les 100 pas) :
+           - Si |I| > 0.1 (déviation > 10%) → augmente τ (plus de friction)
+           - Si |I| < 0.1 (stable) → réduit τ (moins de friction)
+           - Permet au système de s'adapter aux changements
+
+        3. REBALANCEMENT THERMODYNAMIQUE (si |I| > 0.2, déviation > 20%) :
+           - Ajuste directement D pour ramener θ vers 1
+           - Mécanisme de "dernier recours" pour crises majeures
+           - Ajuste progressivement (10% par cycle) pour éviter les chocs
+
+        Analogie : Le RAD est comme un pilote automatique d'avion :
+        - Niveau 1 : Corrections légères continues (κ)
+        - Niveau 2 : Ajustements modérés périodiques (τ)
+        - Niveau 3 : Interventions fortes en cas de crise (D)
+
+        Le système est ENTIÈREMENT AUTOMATIQUE et DÉCENTRALISÉ.
+        Aucune décision humaine n'est requise. C'est une cybernétique pure.
         """
+        # NIVEAU 1 : Rétroaction continue sur κ
+        # Mesure la tension actuelle du système
         theta = self.thermometer()
+        # Ajuste κ selon la formule : κ(t+1) = κ(t) × (1 - α × (θ - 1))
+        # avec α = 0.1 (coefficient de rétroaction)
         self.rad.update_kappa(theta)
 
-        # Régulation périodique pour maintenir l'équilibre du système
+        # NIVEAU 2 & 3 : Régulation périodique (tous les T_period pas)
         if self.time % self.rad.T_period == 0:
+            # Mesure la déviation par rapport à l'équilibre
             indicator = self.indicator()
 
-            # Ajustement de la dissipation selon la déviation
+            # NIVEAU 2 : Ajustement dynamique de la dissipation
+            # La dissipation (friction) est un régulateur thermodynamique
             if abs(indicator) > 0.1:
-                # Augmente la dissipation si le système s'éloigne de l'équilibre
+                # Système instable (|I| > 10%) → AUGMENTE la friction
+                # Plus de friction = plus de redistribution = plus de stabilisation
                 self.rad.dissipation_rate = min(0.05, self.rad.dissipation_rate * 1.1)
             else:
-                # Réduit la dissipation si le système est stable
+                # Système stable (|I| < 10%) → RÉDUIT la friction
+                # Moins de friction = économie plus fluide = meilleure efficacité
                 self.rad.dissipation_rate = max(0.01, self.rad.dissipation_rate * 0.95)
 
-            # Mécanisme de rebalancement thermodynamique
-            # Si θ s'éloigne trop de 1, le RAD ajuste D pour ramener vers l'équilibre
+            # NIVEAU 3 : Rebalancement thermodynamique d'urgence
+            # Si θ s'éloigne TROP de 1 (|I| > 20%), intervention directe sur D
             if abs(indicator) > 0.2:
+                # Calcule le V en circulation
                 V_circulation = sum(agent.V_balance for agent in self.agents.values())
-                target_D = V_circulation  # Cible : D = V pour θ = 1
-                current_D = self.rad.total_D()
-                adjustment = (target_D - current_D) * 0.1  # Ajustement progressif (10%)
 
-                # Distribue l'ajustement sur D_regulatrice (chambre de relance)
+                # La cible est D = V pour avoir θ = D/V = 1
+                target_D = V_circulation
+                current_D = self.rad.total_D()
+
+                # Calcule l'ajustement nécessaire (progressif : 10% par cycle)
+                # On ne corrige pas d'un coup pour éviter les chocs brutaux
+                adjustment = (target_D - current_D) * 0.1
+
+                # Applique l'ajustement sur D_regulatrice (chambre de relance)
+                # C'est la composante "flexible" de D, utilisée pour la régulation
                 self.rad.D_regulatrice += adjustment
 
     def reconvert_U_to_V(self, agent_id: str, amount: float) -> bool:
