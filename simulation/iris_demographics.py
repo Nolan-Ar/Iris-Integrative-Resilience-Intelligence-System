@@ -34,7 +34,7 @@ class Demographics:
 
     def __init__(self,
                  life_expectancy: float = 80.0,
-                 birth_rate: float = 0.03,
+                 birth_rate: float = 0.06,
                  min_reproduction_age: int = 18,
                  max_reproduction_age: int = 50,
                  retirement_age: int = 65,
@@ -44,7 +44,7 @@ class Demographics:
 
         Args:
             life_expectancy: Espérance de vie en années
-            birth_rate: Taux de natalité annuel (2.0% par défaut, augmenté pour meilleure survie)
+            birth_rate: Taux de natalité annuel (6.0% par défaut, augmenté pour meilleure survie)
             min_reproduction_age: Âge minimum de reproduction
             max_reproduction_age: Âge maximum de reproduction
             retirement_age: Âge de la retraite
@@ -126,13 +126,14 @@ class Demographics:
         wealth_ratio = agent_wealth / max(avg_wealth, 1.0)
 
         # Modification logarithmique (évite les extrêmes)
-        # wealth_ratio = 0.1 → modifier ≈ 0.7
+        # Réduit l'influence de la richesse pour éviter spirale de pauvreté
+        # wealth_ratio = 0.1 → modifier ≈ 0.85
         # wealth_ratio = 1.0 → modifier = 1.0
-        # wealth_ratio = 10.0 → modifier ≈ 1.3
-        modifier = 0.5 + 0.5 * np.log(wealth_ratio + 1) / np.log(11)
+        # wealth_ratio = 10.0 → modifier ≈ 1.15
+        modifier = 0.7 + 0.3 * np.log(wealth_ratio + 1) / np.log(11)
 
-        # Clamp entre 0.5 et 1.5
-        return np.clip(modifier, 0.5, 1.5)
+        # Clamp entre 0.7 et 1.3 (réduit l'écart)
+        return np.clip(modifier, 0.7, 1.3)
 
     def process_deaths(self,
                        agents: Dict[str, Agent],
@@ -184,7 +185,8 @@ class Demographics:
             # Modificateur de richesse (inverse : riche = moins de mort)
             agent = agents[agent_id]
             wealth_mod = self._calculate_wealth_modifier(agent, avg_wealth)
-            # Inverse : riche (1.5) → 0.67, pauvre (0.5) → 2.0
+            # Inverse : riche (1.3) → 0.7, pauvre (0.7) → 1.3
+            # Impact réduit pour éviter spirale de la mort
             death_modifier = 2.0 - wealth_mod
 
             # Probabilité finale
@@ -310,9 +312,9 @@ class Demographics:
 
             new_agent = Agent(id=new_id)
 
-            # Héritage partiel : le nouveau agent reçoit une petite dotation
-            # (simule l'aide familiale, mais pas tout l'héritage)
-            inheritance_rate = 0.05  # 5% du patrimoine parental
+            # Héritage partiel : le nouveau agent reçoit une dotation raisonnable
+            # (simule l'aide familiale et la transmission intergénérationnelle)
+            inheritance_rate = 0.20  # 20% du patrimoine parental
 
             # Transfert patrimonial
             inherited_V = parent.V_balance * inheritance_rate
@@ -326,7 +328,7 @@ class Demographics:
 
             # Le nouvel agent peut aussi créer de petits actifs
             # (simule l'entrée dans la vie active)
-            n_initial_assets = np.random.poisson(0.5)  # Peu d'actifs au départ
+            n_initial_assets = np.random.poisson(1.5)  # Quelques actifs au départ
 
             for j in range(n_initial_assets):
                 asset_type = np.random.choice(list(AssetType))

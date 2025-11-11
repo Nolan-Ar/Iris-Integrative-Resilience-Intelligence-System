@@ -315,7 +315,8 @@ class IRISEconomy:
         2. Les D₀ sont répartis dans le RAD selon le type d'actif
         3. Vérification finale : ΣV₀ = ΣD₀
         """
-        np.random.seed(42)  # Fixe la graine pour reproductibilité des résultats
+        # NOTE: Ne fixe PAS la graine ici pour permettre des résultats différents
+        # Si reproductibilité nécessaire, utiliser --seed en ligne de commande
 
         for i in range(n_agents):
             # Crée un nouvel agent
