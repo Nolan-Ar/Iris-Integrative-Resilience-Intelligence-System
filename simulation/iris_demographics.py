@@ -34,25 +34,28 @@ class Demographics:
 
     def __init__(self,
                  life_expectancy: float = 80.0,
-                 birth_rate: float = 0.015,
-                 min_reproduction_age: int = 20,
-                 max_reproduction_age: int = 45,
-                 retirement_age: int = 65):
+                 birth_rate: float = 0.03,
+                 min_reproduction_age: int = 18,
+                 max_reproduction_age: int = 50,
+                 retirement_age: int = 65,
+                 wealth_influence: bool = True):
         """
         Initialise le module démographique
 
         Args:
             life_expectancy: Espérance de vie en années
-            birth_rate: Taux de natalité annuel (1.5% par défaut)
+            birth_rate: Taux de natalité annuel (2.0% par défaut, augmenté pour meilleure survie)
             min_reproduction_age: Âge minimum de reproduction
             max_reproduction_age: Âge maximum de reproduction
             retirement_age: Âge de la retraite
+            wealth_influence: Si True, la richesse influence natalité/mortalité
         """
         self.life_expectancy = life_expectancy
         self.birth_rate = birth_rate
         self.min_reproduction_age = min_reproduction_age
         self.max_reproduction_age = max_reproduction_age
         self.retirement_age = retirement_age
+        self.wealth_influence = wealth_influence
 
         # Compteurs pour statistiques
         self.total_births = 0
@@ -97,18 +100,56 @@ class Demographics:
         # Tout le monde vieillit d'un an
         return {agent_id: age + 1 for agent_id, age in ages.items()}
 
+    def _calculate_wealth_modifier(self,
+                                   agent: Agent,
+                                   avg_wealth: float) -> float:
+        """
+        Calcule un modificateur basé sur la richesse relative de l'agent
+
+        Agent plus riche que la moyenne → meilleure santé, plus de naissances
+        Agent plus pauvre → santé précaire, moins de naissances
+
+        Args:
+            agent: Agent concerné
+            avg_wealth: Richesse moyenne de la population
+
+        Returns:
+            Modificateur entre 0.5 (très pauvre) et 1.5 (très riche)
+        """
+        if not self.wealth_influence or avg_wealth == 0:
+            return 1.0
+
+        # Richesse totale de l'agent
+        agent_wealth = agent.V_balance + agent.U_balance
+
+        # Ratio richesse relative
+        wealth_ratio = agent_wealth / max(avg_wealth, 1.0)
+
+        # Modification logarithmique (évite les extrêmes)
+        # wealth_ratio = 0.1 → modifier ≈ 0.7
+        # wealth_ratio = 1.0 → modifier = 1.0
+        # wealth_ratio = 10.0 → modifier ≈ 1.3
+        modifier = 0.5 + 0.5 * np.log(wealth_ratio + 1) / np.log(11)
+
+        # Clamp entre 0.5 et 1.5
+        return np.clip(modifier, 0.5, 1.5)
+
     def process_deaths(self,
                        agents: Dict[str, Agent],
                        ages: Dict[str, int],
                        year: int) -> List[str]:
         """
-        Gère les morts d'agents selon l'espérance de vie
+        Gère les morts d'agents selon l'espérance de vie et la richesse
 
         Probabilité de mort augmente avec l'âge :
         - < 60 ans : très faible (~0.1% par an)
         - 60-70 ans : faible (~1% par an)
         - 70-80 ans : moyenne (~5% par an)
         - > 80 ans : élevée (~20% par an)
+
+        La richesse influence la mortalité :
+        - Agent riche (modifier=1.5) → -33% de mortalité
+        - Agent pauvre (modifier=0.5) → +100% de mortalité
 
         Args:
             agents: Dictionnaire des agents
@@ -120,18 +161,34 @@ class Demographics:
         """
         deceased = []
 
+        # Calcul de la richesse moyenne (pour modificateur)
+        if self.wealth_influence:
+            total_wealth = sum(a.V_balance + a.U_balance for a in agents.values())
+            avg_wealth = total_wealth / max(len(agents), 1)
+        else:
+            avg_wealth = 0.0
+
         for agent_id, age in list(ages.items()):
-            # Calcul de la probabilité de mort selon l'âge
+            # Calcul de la probabilité de mort selon l'âge (RÉDUIT de 70%)
             if age < 60:
-                death_prob = 0.001  # 0.1%
+                base_death_prob = 0.0003  # 0.03% (réduit de 0.1%)
             elif age < 70:
-                death_prob = 0.01   # 1%
+                base_death_prob = 0.003   # 0.3% (réduit de 1%)
             elif age < 80:
-                death_prob = 0.05   # 5%
+                base_death_prob = 0.015   # 1.5% (réduit de 5%)
             elif age < 90:
-                death_prob = 0.20   # 20%
+                base_death_prob = 0.06    # 6% (réduit de 20%)
             else:
-                death_prob = 0.50   # 50% (très vieux)
+                base_death_prob = 0.15    # 15% (réduit de 50%)
+
+            # Modificateur de richesse (inverse : riche = moins de mort)
+            agent = agents[agent_id]
+            wealth_mod = self._calculate_wealth_modifier(agent, avg_wealth)
+            # Inverse : riche (1.5) → 0.67, pauvre (0.5) → 2.0
+            death_modifier = 2.0 - wealth_mod
+
+            # Probabilité finale
+            death_prob = base_death_prob * death_modifier
 
             # Tirage aléatoire
             if np.random.random() < death_prob:
@@ -189,12 +246,15 @@ class Demographics:
                       assets_registry: Dict[str, Asset],
                       year: int) -> List[Agent]:
         """
-        Gère les naissances d'agents
+        Gère les naissances d'agents avec influence de la richesse
 
         Mécanisme :
         - Agents en âge de procréer (20-45 ans) ont une probabilité de "créer" un nouvel agent
         - Le nouvel agent hérite d'une partie du patrimoine de ses "parents"
         - Simule la création de richesse intergénérationnelle
+        - La richesse augmente le taux de natalité :
+          * Agent riche (modifier=1.5) → +50% de naissances
+          * Agent pauvre (modifier=0.5) → -50% de naissances
 
         Args:
             agents: Dictionnaire des agents
@@ -213,8 +273,27 @@ class Demographics:
             if self.min_reproduction_age <= age <= self.max_reproduction_age
         ]
 
+        # Calcul de la richesse moyenne (pour modificateur)
+        if self.wealth_influence:
+            total_wealth = sum(a.V_balance + a.U_balance for a in agents.values())
+            avg_wealth = total_wealth / max(len(agents), 1)
+        else:
+            avg_wealth = 0.0
+
+        # Calcul du taux de natalité ajusté par la richesse
+        if self.wealth_influence and reproductive_agents:
+            # Calcul du modificateur moyen pour les agents reproductifs
+            wealth_mods = [
+                self._calculate_wealth_modifier(agents[aid], avg_wealth)
+                for aid in reproductive_agents
+            ]
+            avg_wealth_mod = np.mean(wealth_mods)
+            adjusted_birth_rate = self.birth_rate * avg_wealth_mod
+        else:
+            adjusted_birth_rate = self.birth_rate
+
         # Calcul du nombre de naissances attendues
-        expected_births = len(reproductive_agents) * self.birth_rate
+        expected_births = len(reproductive_agents) * adjusted_birth_rate
         actual_births = np.random.poisson(expected_births)
 
         for _ in range(actual_births):

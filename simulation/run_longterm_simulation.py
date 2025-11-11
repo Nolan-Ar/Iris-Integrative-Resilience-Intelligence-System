@@ -93,7 +93,20 @@ Exemples d'utilisation :
         help='Frequence des catastrophes (default: 0.05 = 5%% par an)'
     )
 
+    parser.add_argument(
+        '--seed',
+        type=int,
+        default=None,
+        help='Graine aleatoire pour reproductibilite (default: None = aleatoire)'
+    )
+
     args = parser.parse_args()
+
+    # Fixe la graine si specifiee (pour reproductibilite)
+    if args.seed is not None:
+        import numpy as np
+        np.random.seed(args.seed)
+        print(f"Graine aleatoire fixee a {args.seed} pour reproductibilite\n")
 
     # Affichage de l'en-tete
     print("\n" + "="*70)
