@@ -3,6 +3,11 @@ IRIS Economic System - Visualization Module
 ===========================================
 
 Module de visualisation pour l'analyse du système IRIS.
+
+Auteur: Arnault Nolan
+Email: arnaultnolan@gmail.com
+Date: 2025
+
 Génère des graphiques illustrant :
 - L'évolution des variables clés (V, U, D)
 - Le fonctionnement des mécanismes de régulation (θ, κ)
@@ -122,7 +127,7 @@ class IRISVisualizer:
         plt.tight_layout()
         output_path = self.output_dir / f"{title.replace(' ', '_')}.png"
         plt.savefig(output_path, dpi=300, bbox_inches='tight')
-        print(f"✓ Graphique sauvegardé : {output_path}")
+        print(f"OK: Graphique sauvegardé : {output_path}")
         plt.close()
 
     def plot_regulation_detail(self, history: Dict):
@@ -187,7 +192,7 @@ class IRISVisualizer:
         plt.tight_layout()
         output_path = self.output_dir / "regulation_detail.png"
         plt.savefig(output_path, dpi=300, bbox_inches='tight')
-        print(f"✓ Graphique sauvegardé : {output_path}")
+        print(f"OK: Graphique sauvegardé : {output_path}")
         plt.close()
 
     def plot_shock_comparison(self, histories: Dict[str, Dict], shock_time: int):
@@ -258,7 +263,7 @@ class IRISVisualizer:
         plt.tight_layout()
         output_path = self.output_dir / "shock_comparison.png"
         plt.savefig(output_path, dpi=300, bbox_inches='tight')
-        print(f"✓ Graphique sauvegardé : {output_path}")
+        print(f"OK: Graphique sauvegardé : {output_path}")
         plt.close()
 
     def plot_phase_space(self, history: Dict):
@@ -298,7 +303,7 @@ class IRISVisualizer:
         plt.tight_layout()
         output_path = self.output_dir / "phase_space.png"
         plt.savefig(output_path, dpi=300, bbox_inches='tight')
-        print(f"✓ Graphique sauvegardé : {output_path}")
+        print(f"OK: Graphique sauvegardé : {output_path}")
         plt.close()
 
     def export_data(self, history: Dict, filename: str = "simulation_data"):
@@ -317,13 +322,13 @@ class IRISVisualizer:
         # Export CSV
         csv_path = self.output_dir / f"{filename}.csv"
         df.to_csv(csv_path, index=False)
-        print(f"✓ Données CSV exportées : {csv_path}")
+        print(f"OK: Données CSV exportées : {csv_path}")
 
         # Export JSON
         json_path = self.output_dir / f"{filename}.json"
         with open(json_path, 'w', encoding='utf-8') as f:
             json.dump(history, f, indent=2)
-        print(f"✓ Données JSON exportées : {json_path}")
+        print(f"OK: Données JSON exportées : {json_path}")
 
     def generate_report(self, history: Dict, scenario_name: str = "baseline"):
         """
@@ -338,7 +343,7 @@ class IRISVisualizer:
         print(f"{'='*60}\n")
 
         # Statistiques générales
-        print("📊 STATISTIQUES GÉNÉRALES")
+        print("STATISTIQUES GÉNÉRALES")
         print(f"  Durée de simulation : {history['time'][-1]} pas de temps")
         print(f"  V total final : {history['total_V'][-1]:.2f}")
         print(f"  U total final : {history['total_U'][-1]:.2f}")
@@ -399,7 +404,7 @@ def create_dashboard(history: Dict, output_dir: str = "results"):
     """
     viz = IRISVisualizer(output_dir)
 
-    print("\n🎨 Génération des visualisations...")
+    print("\nGénération des visualisations...")
 
     viz.plot_main_variables(history)
     viz.plot_regulation_detail(history)
@@ -407,4 +412,4 @@ def create_dashboard(history: Dict, output_dir: str = "results"):
     viz.export_data(history)
     viz.generate_report(history)
 
-    print("✓ Dashboard complet généré")
+    print("OK: Dashboard complet généré")

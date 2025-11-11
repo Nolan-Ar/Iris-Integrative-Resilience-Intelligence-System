@@ -2,7 +2,13 @@
 IRIS Economic System - Scenario Testing
 ========================================
 
-Scénarios de test pour évaluer la résilience du système IRIS :
+Scénarios de test pour évaluer la résilience du système IRIS.
+
+Auteur: Arnault Nolan
+Email: arnaultnolan@gmail.com
+Date: 2025
+
+Scénarios implémentés :
 1. Baseline (fonctionnement normal)
 2. Choc de richesse (destruction d'actifs)
 3. Choc de demande (augmentation soudaine de liquidité)
@@ -89,7 +95,7 @@ class ScenarioRunner:
         )
 
         # Phase pré-choc
-        print(f"\n📊 Phase 1 : Stabilisation initiale ({shock_time} pas)...")
+        print(f"\nPhase 1 : Stabilisation initiale ({shock_time} pas)...")
         for _ in range(shock_time):
             economy.step(n_transactions=20)
 
@@ -97,7 +103,7 @@ class ScenarioRunner:
         economy.inject_shock('wealth_loss', magnitude)
 
         # Phase post-choc
-        print(f"\n📊 Phase 2 : Récupération post-choc ({steps - shock_time} pas)...")
+        print(f"\nPhase 2 : Récupération post-choc ({steps - shock_time} pas)...")
         for _ in range(steps - shock_time):
             economy.step(n_transactions=20)
             if (economy.time) % 100 == 0:
@@ -140,7 +146,7 @@ class ScenarioRunner:
         )
 
         # Phase pré-choc
-        print(f"\n📊 Phase 1 : Stabilisation initiale ({shock_time} pas)...")
+        print(f"\nPhase 1 : Stabilisation initiale ({shock_time} pas)...")
         for _ in range(shock_time):
             economy.step(n_transactions=20)
 
@@ -148,7 +154,7 @@ class ScenarioRunner:
         economy.inject_shock('demand_surge', magnitude)
 
         # Phase post-choc
-        print(f"\n📊 Phase 2 : Régulation post-choc ({steps - shock_time} pas)...")
+        print(f"\nPhase 2 : Régulation post-choc ({steps - shock_time} pas)...")
         for _ in range(steps - shock_time):
             economy.step(n_transactions=20)
             if (economy.time) % 100 == 0:
@@ -191,7 +197,7 @@ class ScenarioRunner:
         )
 
         # Phase pré-choc
-        print(f"\n📊 Phase 1 : Stabilisation initiale ({shock_time} pas)...")
+        print(f"\nPhase 1 : Stabilisation initiale ({shock_time} pas)...")
         for _ in range(shock_time):
             economy.step(n_transactions=20)
 
@@ -204,7 +210,7 @@ class ScenarioRunner:
         print(f"  Dissipation après : {economy.rad.dissipation_rate:.4f}")
 
         # Phase post-choc
-        print(f"\n📊 Phase 2 : Adaptation post-choc ({steps - shock_time} pas)...")
+        print(f"\nPhase 2 : Adaptation post-choc ({steps - shock_time} pas)...")
         for _ in range(steps - shock_time):
             economy.step(n_transactions=20)
             if (economy.time) % 100 == 0:
@@ -242,27 +248,27 @@ class ScenarioRunner:
 
         # Phase 1 : Stabilisation
         phase1 = 300
-        print(f"\n📊 Phase 1 : Stabilisation ({phase1} pas)...")
+        print(f"\nPhase 1 : Stabilisation ({phase1} pas)...")
         for _ in range(phase1):
             economy.step(n_transactions=20)
 
         # Choc 1 : Perte de richesse
-        print(f"\n⚠️  CHOC 1 - Destruction de patrimoine (t={economy.time})")
+        print(f"\nATTENTION: CHOC 1 - Destruction de patrimoine (t={economy.time})")
         economy.inject_shock('wealth_loss', 0.25)
 
         # Phase 2 : Récupération partielle
         phase2 = 300
-        print(f"\n📊 Phase 2 : Récupération ({phase2} pas)...")
+        print(f"\nPhase 2 : Récupération ({phase2} pas)...")
         for _ in range(phase2):
             economy.step(n_transactions=20)
 
         # Choc 2 : Choc de demande
-        print(f"\n⚠️  CHOC 2 - Panique et conversion massive V→U (t={economy.time})")
+        print(f"\nATTENTION: CHOC 2 - Panique et conversion massive V→U (t={economy.time})")
         economy.inject_shock('demand_surge', 0.6)
 
         # Phase 3 : Régulation
         phase3 = 400
-        print(f"\n📊 Phase 3 : Régulation ({phase3} pas)...")
+        print(f"\nPhase 3 : Régulation ({phase3} pas)...")
         for _ in range(phase3):
             economy.step(n_transactions=20)
             if (economy.time) % 100 == 0:
@@ -272,12 +278,12 @@ class ScenarioRunner:
                 print(f"  Pas {economy.time}/{steps} - θ={theta:.4f}, I={indicator:.4f}, κ={kappa:.4f}")
 
         # Choc 3 : Choc d'offre
-        print(f"\n⚠️  CHOC 3 - Crise énergétique (t={economy.time})")
+        print(f"\nATTENTION: CHOC 3 - Crise énergétique (t={economy.time})")
         economy.inject_shock('supply_shock', 2.5)
 
         # Phase 4 : Stabilisation finale
         remaining = steps - economy.time
-        print(f"\n📊 Phase 4 : Stabilisation finale ({remaining} pas)...")
+        print(f"\nPhase 4 : Stabilisation finale ({remaining} pas)...")
         for _ in range(remaining):
             economy.step(n_transactions=20)
             if (economy.time) % 100 == 0:
@@ -325,18 +331,18 @@ class ScenarioRunner:
         original_kappa = economy.rad.kappa
 
         # Phase pré-choc
-        print(f"\n📊 Phase 1 : Avant choc ({shock_time} pas)...")
+        print(f"\nPhase 1 : Avant choc ({shock_time} pas)...")
         for _ in range(shock_time):
             # Pas de régulation : kappa reste fixe
             economy.step(n_transactions=20)
             economy.rad.kappa = original_kappa  # Force kappa constant
 
         # Injection du choc
-        print(f"\n⚠️  Choc : {shock_type} (magnitude={magnitude})")
+        print(f"\nATTENTION: Choc : {shock_type} (magnitude={magnitude})")
         economy.inject_shock(shock_type, magnitude)
 
         # Phase post-choc sans régulation
-        print(f"\n📊 Phase 2 : Après choc SANS régulation ({steps - shock_time} pas)...")
+        print(f"\nPhase 2 : Après choc SANS régulation ({steps - shock_time} pas)...")
         for _ in range(steps - shock_time):
             economy.step(n_transactions=20)
             economy.rad.kappa = original_kappa  # Force kappa constant
@@ -350,7 +356,7 @@ class ScenarioRunner:
         print(f"\n📈 Résultats sans régulation :")
         print(f"  Thermomètre final : {economy.thermometer():.4f}")
         print(f"  Indicateur final : {economy.indicator():.4f}")
-        print(f"  ⚠️  Déviation importante : {abs(economy.indicator()) > 0.1}")
+        print(f"  ATTENTION: Déviation importante : {abs(economy.indicator()) > 0.1}")
 
         return economy
 
@@ -386,24 +392,24 @@ class ScenarioRunner:
             shock_time: Moment du choc (pour les graphiques)
         """
         if not self.results:
-            print("⚠️  Aucun scénario n'a été exécuté. Lancez d'abord les scénarios.")
+            print("ATTENTION: Aucun scénario n'a été exécuté. Lancez d'abord les scénarios.")
             return
 
         viz = IRISVisualizer(self.output_dir)
 
-        print("\n🎨 Génération des comparaisons visuelles...")
+        print("\nGénération des comparaisons visuelles...")
 
         # Graphique de comparaison des chocs
         viz.plot_shock_comparison(self.results, shock_time)
 
-        print("✓ Visualisations comparatives générées")
+        print("OK: Visualisations comparatives générées")
 
     def generate_comparative_report(self):
         """
         Génère un rapport comparatif de tous les scénarios
         """
         if not self.results:
-            print("⚠️  Aucun résultat à rapporter.")
+            print("ATTENTION: Aucun résultat à rapporter.")
             return
 
         print("\n" + "="*70)
@@ -415,7 +421,7 @@ class ScenarioRunner:
             indicator_array = np.array(history['indicator'])
             gini_array = np.array(history['gini_coefficient'])
 
-            print(f"\n📊 {scenario_name.upper()}")
+            print(f"\n{scenario_name.upper()}")
             print(f"  {'─'*60}")
             print(f"  Thermomètre moyen : {theta_array.mean():.4f} ± {theta_array.std():.4f}")
             print(f"  Indicateur moyen : {indicator_array.mean():.4f} ± {indicator_array.std():.4f}")
@@ -481,7 +487,7 @@ def run_full_analysis(n_agents: int = 100, output_dir: str = "results"):
     # Visualisations individuelles détaillées
     viz = IRISVisualizer(output_dir)
 
-    print("\n🎨 Génération des visualisations détaillées...")
+    print("\nGénération des visualisations détaillées...")
     viz.plot_main_variables(economy_baseline.history, "Scénario_1_Baseline")
     viz.plot_main_variables(economy_crisis.history, "Scénario_5_Crise_Systémique")
     viz.plot_regulation_detail(economy_baseline.history)

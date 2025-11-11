@@ -5,6 +5,10 @@ IRIS Economic System - Main Simulation Script
 
 Script principal pour exécuter la simulation du système économique IRIS.
 
+Auteur: Arnault Nolan
+Email: arnaultnolan@gmail.com
+Date: 2025
+
 Usage:
     python run_simulation.py [--scenario SCENARIO] [--agents N] [--steps N]
 
@@ -106,8 +110,9 @@ Exemples d'utilisation :
 
     # Affichage de l'en-tête
     print("\n" + "="*70)
-    print("🌐 IRIS - Integrative Resilience Intelligence System")
-    print("    Simulation du Système Économique basé sur la Preuve d'Acte")
+    print("IRIS - Integrative Resilience Intelligence System")
+    print("Simulation du Système Économique basé sur la Preuve d'Acte")
+    print("Auteur: Arnault Nolan (arnaultnolan@gmail.com)")
     print("="*70 + "\n")
 
     print(f"Configuration :")
@@ -124,7 +129,7 @@ Exemples d'utilisation :
     # Exécution selon le scénario
     if args.scenario == 'full':
         # Analyse complète
-        print("🔬 Lancement de l'analyse complète (tous les scénarios)...\n")
+        print("Lancement de l'analyse complète (tous les scénarios)...\n")
         runner = run_full_analysis(n_agents=args.agents, output_dir=args.output_dir)
 
     else:
@@ -168,12 +173,12 @@ Exemples d'utilisation :
 
         # Visualisations
         if not args.no_viz:
-            print("\n🎨 Génération des visualisations...")
+            print("\nGénération des visualisations...")
             create_dashboard(economy.history, args.output_dir)
 
     print("\n" + "="*70)
-    print("✅ SIMULATION TERMINÉE AVEC SUCCÈS")
-    print(f"📁 Résultats disponibles dans : {args.output_dir}/")
+    print("SIMULATION TERMINÉE AVEC SUCCÈS")
+    print(f"Résultats disponibles dans : {args.output_dir}/")
     print("="*70 + "\n")
 
 
@@ -181,10 +186,10 @@ if __name__ == '__main__':
     try:
         main()
     except KeyboardInterrupt:
-        print("\n\n⚠️  Simulation interrompue par l'utilisateur.")
+        print("\n\nATTENTION: Simulation interrompue par l'utilisateur.")
         sys.exit(1)
     except Exception as e:
-        print(f"\n\n❌ ERREUR : {e}")
+        print(f"\n\nERREUR: {e}")
         import traceback
         traceback.print_exc()
         sys.exit(1)
