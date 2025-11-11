@@ -5,6 +5,10 @@ IRIS Economic System - Core Model
 Modèle du système économique IRIS (Integrative Resilience Intelligence System)
 basé sur la preuve d'acte plutôt que la promesse de remboursement.
 
+Auteur: Arnault Nolan
+Email: arnaultnolan@gmail.com
+Date: 2025
+
 Composantes principales :
 - V (Verum) : Valeur/mémoire de valeur
 - U (Usage) : Monnaie d'usage
@@ -208,7 +212,7 @@ class IRISEconomy:
         assert abs(total_V - total_D) < 1e-6, \
             f"Déséquilibre initial : V={total_V:.2f}, D={total_D:.2f}"
 
-        print(f"✓ Équilibre initial vérifié : V₀ = D₀ = {total_V:.2f}")
+        print(f"OK: Équilibre initial vérifié : V₀ = D₀ = {total_V:.2f}")
 
     def thermometer(self) -> float:
         """
@@ -485,7 +489,7 @@ class IRISEconomy:
             steps: Nombre de pas de simulation
             n_transactions: Transactions par pas
         """
-        print(f"\n🚀 Démarrage de la simulation IRIS ({steps} pas)...")
+        print(f"\nDémarrage de la simulation IRIS ({steps} pas)...")
 
         for i in range(steps):
             self.step(n_transactions)
@@ -496,7 +500,7 @@ class IRISEconomy:
                 gini = self.gini_coefficient()
                 print(f"  Pas {i+1}/{steps} - θ={theta:.4f}, I={indicator:.4f}, Gini={gini:.4f}")
 
-        print("✓ Simulation terminée\n")
+        print("OK: Simulation terminée\n")
 
     def inject_shock(self, shock_type: str, magnitude: float):
         """
@@ -506,7 +510,7 @@ class IRISEconomy:
             shock_type: Type de choc ('wealth_loss', 'demand_surge', 'supply_shock')
             magnitude: Intensité du choc (0-1)
         """
-        print(f"\n⚠️  Injection d'un choc : {shock_type} (magnitude={magnitude:.2f})")
+        print(f"\nATTENTION: Injection d'un choc : {shock_type} (magnitude={magnitude:.2f})")
 
         if shock_type == 'wealth_loss':
             # Destruction d'une partie du patrimoine (catastrophe naturelle, etc.)

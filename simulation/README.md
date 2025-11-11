@@ -1,4 +1,4 @@
-# 🌐 IRIS - Simulation du Système Économique
+# IRIS - Simulation du Système Économique
 
 ## Integrative Resilience Intelligence System
 
@@ -6,7 +6,7 @@ Simulation du système économique IRIS basé sur la **preuve d'acte** plutôt q
 
 ---
 
-## 📋 Table des Matières
+## Table des Matières
 
 - [Introduction](#introduction)
 - [Principes Fondamentaux](#principes-fondamentaux)
@@ -19,19 +19,19 @@ Simulation du système économique IRIS basé sur la **preuve d'acte** plutôt q
 
 ---
 
-## 🎯 Introduction
+## Introduction
 
 Le système IRIS représente une **refondation épistémologique de l'économie**, passant d'un modèle basé sur la dette et la promesse à un modèle basé sur la preuve d'acte réel et la régulation automatique.
 
 Cette simulation démontre que les mécanismes de régulation d'IRIS permettent de :
-- ✅ Maintenir un équilibre thermodynamique stable
-- ✅ Absorber des chocs économiques majeurs
-- ✅ Réduire les inégalités via le revenu universel
-- ✅ Assurer la résilience face aux crises systémiques
+- - Maintenir un équilibre thermodynamique stable
+- - Absorber des chocs économiques majeurs
+- - Réduire les inégalités via le revenu universel
+- - Assurer la résilience face aux crises systémiques
 
 ---
 
-## 🔬 Principes Fondamentaux
+## Principes Fondamentaux
 
 ### Variables Principales
 
@@ -74,7 +74,7 @@ La dette thermométrique se décompose en 5 composantes :
 
 ---
 
-## 💻 Installation
+## Installation
 
 ### Prérequis
 
@@ -90,7 +90,7 @@ pip install -r requirements.txt
 
 ---
 
-## 🚀 Utilisation
+## Utilisation
 
 ### Analyse Complète (Recommandé)
 
@@ -161,7 +161,7 @@ python run_simulation.py \
 
 ---
 
-## 🏗️ Architecture
+## Architecture
 
 ### Structure des Fichiers
 
@@ -221,7 +221,7 @@ Modèle complet du système économique.
 
 ---
 
-## 🧪 Scénarios de Test
+## Scénarios de Test
 
 ### 1. Baseline
 
@@ -300,7 +300,7 @@ Modèle complet du système économique.
 
 ---
 
-## 📊 Résultats et Analyses
+## Résultats et Analyses
 
 ### Graphiques Générés
 
@@ -365,7 +365,7 @@ IRIS vise à stabiliser ou réduire le Gini via le revenu universel basé sur le
 
 ---
 
-## 📚 Références Théoriques
+## Références Théoriques
 
 ### Fondements du Système IRIS
 
@@ -407,7 +407,7 @@ IRIS vise à stabiliser ou réduire le Gini via le revenu universel basé sur le
 
 ---
 
-## 🎯 Métriques de Validation
+## Métriques de Validation
 
 ### Critères de Succès
 
@@ -422,7 +422,7 @@ Le système IRIS est considéré comme valide si :
 
 ---
 
-## 🔧 Personnalisation
+## Personnalisation
 
 ### Paramètres Ajustables
 
@@ -459,7 +459,7 @@ def update_kappa(self, thermometer: float, target: float = 1.0):
 
 ---
 
-## 🤝 Contribution
+## Contribution
 
 Ce projet est une démonstration académique du système IRIS décrit dans le document de référence.
 
@@ -471,13 +471,17 @@ Pour toute question, amélioration ou extension :
 
 ---
 
-## 📄 Licence
+## Licence
 
 Cette simulation est fournie à des fins éducatives et de recherche.
 
 ---
 
-## 📞 Contact
+## Contact
+
+**Auteur :** Arnault Nolan
+**Email :** arnaultnolan@gmail.com
+**Projet :** IRIS - Integrative Resilience Intelligence System
 
 Pour plus d'informations sur le système IRIS, consulter le document de référence complet.
 
@@ -485,21 +489,20 @@ Pour plus d'informations sur le système IRIS, consulter le document de référe
 
 **Date de création :** 2025
 **Version :** 1.0
-**Auteur de la simulation :** Claude AI (Anthropic)
-**Système IRIS :** Arnault Nolan
+**Développement de la simulation :** Arnault Nolan
 
 ---
 
-## 🏆 Résumé des Apports
+## Résumé des Apports
 
 Cette simulation démontre que le système IRIS :
 
-1. ✅ **Maintient un équilibre thermodynamique** via le thermomètre θ = D/V
-2. ✅ **Régule automatiquement** par rétroaction contracyclique sur κ
-3. ✅ **Absorbe les chocs économiques** (richesse, demande, offre)
-4. ✅ **Résiste aux crises systémiques** (chocs multiples successifs)
-5. ✅ **Réduit les inégalités** via le revenu universel basé sur le patrimoine prouvé
-6. ✅ **Fonctionne sans autorité centrale** grâce au RAD décentralisé
-7. ✅ **Mesure la valeur réelle** par preuve d'acte plutôt que promesse
+1. - **Maintient un équilibre thermodynamique** via le thermomètre θ = D/V
+2. - **Régule automatiquement** par rétroaction contracyclique sur κ
+3. - **Absorbe les chocs économiques** (richesse, demande, offre)
+4. - **Résiste aux crises systémiques** (chocs multiples successifs)
+5. - **Réduit les inégalités** via le revenu universel basé sur le patrimoine prouvé
+6. - **Fonctionne sans autorité centrale** grâce au RAD décentralisé
+7. - **Mesure la valeur réelle** par preuve d'acte plutôt que promesse
 
 **IRIS représente une alternative viable aux systèmes monétaires traditionnels basés sur la dette.**
