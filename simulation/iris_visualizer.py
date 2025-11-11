@@ -306,6 +306,129 @@ class IRISVisualizer:
         print(f"OK: Graphique sauvegardé : {output_path}")
         plt.close()
 
+    def plot_demographics(self, history: Dict):
+        """
+        Graphique de l'evolution demographique
+
+        Affiche :
+        - Evolution de la population totale
+        - Naissances et deces cumulatifs
+        - Age moyen de la population
+
+        Args:
+            history: Historique de la simulation
+        """
+        if 'population' not in history or not any(history['population']):
+            print("ATTENTION: Pas de donnees demographiques a visualiser")
+            return
+
+        fig, axes = plt.subplots(3, 1, figsize=(12, 10))
+        time = history['time']
+
+        # 1. Population totale
+        ax = axes[0]
+        ax.plot(time, history['population'], 'b-', linewidth=2, label='Population totale')
+        ax.set_ylabel('Nombre d\'agents')
+        ax.set_title('Evolution de la population', fontweight='bold')
+        ax.legend()
+        ax.grid(True, alpha=0.3)
+
+        # 2. Naissances et deces
+        ax = axes[1]
+        births_cumulative = np.cumsum(history['births'])
+        deaths_cumulative = np.cumsum(history['deaths'])
+
+        ax.plot(time, births_cumulative, 'g-', linewidth=2, label='Naissances cumulees')
+        ax.plot(time, deaths_cumulative, 'r-', linewidth=2, label='Deces cumules')
+        ax.set_ylabel('Nombre cumule')
+        ax.set_title('Naissances et deces', fontweight='bold')
+        ax.legend()
+        ax.grid(True, alpha=0.3)
+
+        # 3. Age moyen
+        ax = axes[2]
+        if any(history['avg_age']):
+            ax.plot(time, history['avg_age'], 'purple', linewidth=2, label='Age moyen')
+            ax.axhline(y=40, color='gray', linestyle='--', alpha=0.5, label='Ref: 40 ans')
+            ax.set_ylabel('Age (annees)')
+            ax.set_xlabel('Temps (annees)')
+            ax.set_title('Age moyen de la population', fontweight='bold')
+            ax.legend()
+            ax.grid(True, alpha=0.3)
+
+        plt.tight_layout()
+        output_path = self.output_dir / "demographics.png"
+        plt.savefig(output_path, dpi=300, bbox_inches='tight')
+        print(f"OK: Graphique demographie sauvegarde : {output_path}")
+        plt.close()
+
+    def plot_long_term_resilience(self, history: Dict):
+        """
+        Graphique de la resilience a long terme
+
+        Affiche :
+        - Catastrophes sur la timeline
+        - Evolution du thermometre avec marqueurs de catastrophes
+        - Impact sur la richesse totale (V + U)
+
+        Args:
+            history: Historique de la simulation
+        """
+        if 'catastrophes' not in history:
+            print("ATTENTION: Pas de donnees de catastrophes a visualiser")
+            return
+
+        fig, axes = plt.subplots(3, 1, figsize=(12, 10))
+        time = history['time']
+
+        # Indices des catastrophes
+        catastrophe_times = [t for t, c in zip(time, history['catastrophes']) if c > 0]
+
+        # 1. Thermometre avec marqueurs de catastrophes
+        ax = axes[0]
+        ax.plot(time, history['thermometer'], 'b-', linewidth=1.5, label='Thermometre θ')
+        ax.axhline(y=1.0, color='green', linestyle='--', alpha=0.5, label='Equilibre θ=1.0')
+
+        # Marque les catastrophes
+        for cat_time in catastrophe_times:
+            ax.axvline(x=cat_time, color='red', alpha=0.3, linewidth=1)
+
+        ax.set_ylabel('θ = D/V')
+        ax.set_title('Thermometre avec evenements catastrophiques', fontweight='bold')
+        ax.legend()
+        ax.grid(True, alpha=0.3)
+
+        # 2. Richesse totale (V + U)
+        ax = axes[1]
+        total_wealth = np.array(history['total_V']) + np.array(history['total_U'])
+        ax.plot(time, total_wealth, 'darkgreen', linewidth=2, label='Richesse totale (V+U)')
+
+        # Marque les catastrophes
+        for cat_time in catastrophe_times:
+            ax.axvline(x=cat_time, color='red', alpha=0.3, linewidth=1, label='Catastrophe' if cat_time == catastrophe_times[0] else '')
+
+        ax.set_ylabel('Richesse totale')
+        ax.set_title('Impact des catastrophes sur la richesse', fontweight='bold')
+        ax.legend()
+        ax.grid(True, alpha=0.3)
+
+        # 3. Nombre de catastrophes par periode
+        ax = axes[2]
+        catastrophes_cumul = np.cumsum(history['catastrophes'])
+        ax.plot(time, catastrophes_cumul, 'r-', linewidth=2, label='Catastrophes cumulees')
+        ax.fill_between(time, catastrophes_cumul, alpha=0.3, color='red')
+        ax.set_ylabel('Nombre cumule')
+        ax.set_xlabel('Temps (annees)')
+        ax.set_title('Cumul des catastrophes', fontweight='bold')
+        ax.legend()
+        ax.grid(True, alpha=0.3)
+
+        plt.tight_layout()
+        output_path = self.output_dir / "long_term_resilience.png"
+        plt.savefig(output_path, dpi=300, bbox_inches='tight')
+        print(f"OK: Graphique resilience long terme sauvegarde : {output_path}")
+        plt.close()
+
     def export_data(self, history: Dict, filename: str = "simulation_data"):
         """
         Exporte les données de simulation en CSV et JSON
@@ -409,6 +532,15 @@ def create_dashboard(history: Dict, output_dir: str = "results"):
     viz.plot_main_variables(history)
     viz.plot_regulation_detail(history)
     viz.plot_phase_space(history)
+
+    # Visualisations démographiques (si disponibles)
+    if 'population' in history and any(history['population']):
+        viz.plot_demographics(history)
+
+    # Visualisations de résilience long terme (si catastrophes)
+    if 'catastrophes' in history:
+        viz.plot_long_term_resilience(history)
+
     viz.export_data(history)
     viz.generate_report(history)
 
