@@ -30,17 +30,45 @@ plt.rcParams['font.size'] = 10
 
 
 class IRISVisualizer:
-    """Classe pour générer les visualisations du système IRIS"""
+    """Classe pour generer les visualisations du systeme IRIS"""
 
-    def __init__(self, output_dir: str = "results"):
+    def __init__(self, output_dir: str = "results", safe_mode: bool = False):
         """
         Initialise le visualiseur
 
         Args:
-            output_dir: Répertoire de sortie pour les graphiques
+            output_dir: Repertoire de sortie pour les graphiques
+            safe_mode: Mode securise (desactive viz en cas d'erreur, retourne silencieusement)
         """
         self.output_dir = Path(output_dir)
         self.output_dir.mkdir(exist_ok=True)
+        self.safe_mode = safe_mode
+        self.viz_errors = []  # Liste des erreurs de visualisation
+
+    def _safe_savefig(self, fig, output_path, dpi=300):
+        """
+        Sauvegarde securisee d'une figure avec gestion d'erreurs
+
+        Args:
+            fig: Figure matplotlib
+            output_path: Chemin de sortie
+            dpi: Resolution
+
+        Returns:
+            bool: True si succes, False si erreur
+        """
+        try:
+            fig.savefig(output_path, dpi=dpi, bbox_inches='tight')
+            print(f"OK: Graphique sauvegarde : {output_path}")
+            return True
+        except Exception as e:
+            error_msg = f"ERREUR visualisation {output_path}: {str(e)}"
+            self.viz_errors.append(error_msg)
+            if not self.safe_mode:
+                print(f"ATTENTION: {error_msg}")
+            return False
+        finally:
+            plt.close(fig)
 
     def plot_main_variables(self, history: Dict, title: str = "Évolution des variables IRIS"):
         """
@@ -126,9 +154,7 @@ class IRISVisualizer:
 
         plt.tight_layout()
         output_path = self.output_dir / f"{title.replace(' ', '_')}.png"
-        plt.savefig(output_path, dpi=300, bbox_inches='tight')
-        print(f"OK: Graphique sauvegardé : {output_path}")
-        plt.close()
+        self._safe_savefig(fig, output_path)
 
     def plot_regulation_detail(self, history: Dict):
         """
@@ -191,9 +217,7 @@ class IRISVisualizer:
 
         plt.tight_layout()
         output_path = self.output_dir / "regulation_detail.png"
-        plt.savefig(output_path, dpi=300, bbox_inches='tight')
-        print(f"OK: Graphique sauvegardé : {output_path}")
-        plt.close()
+        self._safe_savefig(fig, output_path)
 
     def plot_shock_comparison(self, histories: Dict[str, Dict], shock_time: int):
         """
@@ -262,9 +286,7 @@ class IRISVisualizer:
 
         plt.tight_layout()
         output_path = self.output_dir / "shock_comparison.png"
-        plt.savefig(output_path, dpi=300, bbox_inches='tight')
-        print(f"OK: Graphique sauvegardé : {output_path}")
-        plt.close()
+        self._safe_savefig(fig, output_path)
 
     def plot_phase_space(self, history: Dict):
         """
@@ -302,9 +324,7 @@ class IRISVisualizer:
 
         plt.tight_layout()
         output_path = self.output_dir / "phase_space.png"
-        plt.savefig(output_path, dpi=300, bbox_inches='tight')
-        print(f"OK: Graphique sauvegardé : {output_path}")
-        plt.close()
+        self._safe_savefig(fig, output_path)
 
     def plot_demographics(self, history: Dict):
         """
@@ -358,9 +378,7 @@ class IRISVisualizer:
 
         plt.tight_layout()
         output_path = self.output_dir / "demographics.png"
-        plt.savefig(output_path, dpi=300, bbox_inches='tight')
-        print(f"OK: Graphique demographie sauvegarde : {output_path}")
-        plt.close()
+        self._safe_savefig(fig, output_path)
 
     def plot_long_term_resilience(self, history: Dict):
         """
@@ -425,9 +443,7 @@ class IRISVisualizer:
 
         plt.tight_layout()
         output_path = self.output_dir / "long_term_resilience.png"
-        plt.savefig(output_path, dpi=300, bbox_inches='tight')
-        print(f"OK: Graphique resilience long terme sauvegarde : {output_path}")
-        plt.close()
+        self._safe_savefig(fig, output_path)
 
     def export_data(self, history: Dict, filename: str = "simulation_data"):
         """

@@ -94,16 +94,23 @@ Exemples d'utilisation :
     )
 
     parser.add_argument(
+        '--seed',
+        type=int,
+        default=None,
+        help='Graine aleatoire pour reproductibilite (default: None = aleatoire)'
+    )
+
+    parser.add_argument(
         '--output-dir',
         type=str,
         default='results',
-        help='Répertoire de sortie (default: results)'
+        help='Repertoire de sortie (default: results)'
     )
 
     parser.add_argument(
         '--no-viz',
         action='store_true',
-        help='Désactive les visualisations'
+        help='Desactive les visualisations'
     )
 
     args = parser.parse_args()
@@ -116,21 +123,30 @@ Exemples d'utilisation :
     print("="*70 + "\n")
 
     print(f"Configuration :")
-    print(f"  Scénario : {args.scenario}")
+    print(f"  Scenario : {args.scenario}")
     print(f"  Agents : {args.agents}")
     print(f"  Pas de simulation : {args.steps}")
-    print(f"  Répertoire de sortie : {args.output_dir}")
+    if args.seed is not None:
+        print(f"  Graine aleatoire : {args.seed}")
+    print(f"  Repertoire de sortie : {args.output_dir}")
     print()
 
-    # Création du répertoire de sortie
+    # Fixe la graine si specifiee (pour reproductibilite)
+    if args.seed is not None:
+        import numpy as np
+        np.random.seed(args.seed)
+        print(f"Graine aleatoire fixee a {args.seed} pour reproductibilite\n")
+
+    # Creation du repertoire de sortie
     output_path = Path(args.output_dir)
     output_path.mkdir(exist_ok=True)
 
-    # Exécution selon le scénario
+    # Execution selon le scenario
     if args.scenario == 'full':
-        # Analyse complète
-        print("Lancement de l'analyse complète (tous les scénarios)...\n")
-        runner = run_full_analysis(n_agents=args.agents, output_dir=args.output_dir)
+        # Analyse complete
+        print("Lancement de l'analyse complete (tous les scenarios)...\n")
+        runner = run_full_analysis(n_agents=args.agents, output_dir=args.output_dir,
+                                   steps=args.steps, shock_time=args.shock_time, seed=args.seed)
 
     else:
         # Scénario individuel
