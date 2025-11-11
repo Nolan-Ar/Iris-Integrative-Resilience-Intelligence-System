@@ -120,6 +120,20 @@ class Agent:
         self.assets.append(asset)
         self.V_balance += asset.V_initial  # Crédite le Verum d'initialisation
 
+    def remove_asset(self, asset_id: str):
+        """
+        Retire un actif et met à jour le solde V
+
+        Utilise lors de la destruction d'un actif (catastrophe, etc.)
+        - L'actif est retire de la liste
+        - Le V_balance est reduit du V_initial de l'actif
+        """
+        for i, asset in enumerate(self.assets):
+            if asset.id == asset_id:
+                self.V_balance -= asset.V_initial
+                self.assets.pop(i)
+                break
+
     def total_wealth(self) -> float:
         """
         Richesse totale de l'agent (V + U)
@@ -219,7 +233,10 @@ class IRISEconomy:
     def __init__(self,
                  initial_agents: int = 100,
                  gold_factor: float = 1.0,
-                 universal_income_rate: float = 0.01):
+                 universal_income_rate: float = 0.01,
+                 enable_demographics: bool = False,
+                 enable_catastrophes: bool = False,
+                 time_scale: str = "steps"):
         """
         Initialise l'économie IRIS
 
@@ -227,12 +244,33 @@ class IRISEconomy:
             initial_agents: Nombre d'agents initiaux
             gold_factor: Facteur or de zone (équivalent or local)
             universal_income_rate: Taux de revenu universel
+            enable_demographics: Active la démographie (naissances/décès)
+            enable_catastrophes: Active les catastrophes aléatoires
+            time_scale: "steps" ou "years" pour l'échelle de temps
         """
         self.agents: Dict[str, Agent] = {}
         self.assets: Dict[str, Asset] = {}
         self.rad = RADState()
         self.gold_factor = gold_factor
         self.universal_income_rate = universal_income_rate
+        self.time_scale = time_scale
+        self.enable_demographics = enable_demographics
+        self.enable_catastrophes = enable_catastrophes
+
+        # Modules optionnels
+        self.demographics = None
+        self.catastrophe_manager = None
+        self.agent_ages: Dict[str, int] = {}
+
+        # Si démographie activée, initialise le module
+        if enable_demographics:
+            from iris_demographics import Demographics
+            self.demographics = Demographics()
+
+        # Si catastrophes activées, initialise le gestionnaire
+        if enable_catastrophes:
+            from iris_catastrophes import CatastropheManager
+            self.catastrophe_manager = CatastropheManager()
 
         # Métriques de suivi
         self.time = 0
@@ -245,11 +283,20 @@ class IRISEconomy:
             'indicator': [],
             'kappa': [],
             'gini_coefficient': [],
-            'circulation_rate': []
+            'circulation_rate': [],
+            'population': [],
+            'avg_age': [],
+            'births': [],
+            'deaths': [],
+            'catastrophes': []
         }
 
         # Initialisation avec des agents et actifs
         self._initialize_agents(initial_agents)
+
+        # Initialise les âges si démographie activée
+        if self.enable_demographics:
+            self.agent_ages = self.demographics.initialize_ages(self.agents)
 
     def _initialize_agents(self, n_agents: int):
         """
@@ -704,12 +751,33 @@ class IRISEconomy:
         """
         Avance la simulation d'un pas de temps
 
+        Si time_scale="years", ce pas représente 1 année
+        Si time_scale="steps", ce pas représente une période abstraite
+
         Args:
             n_transactions: Nombre de transactions à simuler
         """
         self.time += 1
 
+        # Variables de suivi démographique pour cette étape
+        births_this_step = 0
+        deaths_this_step = 0
+        catastrophes_this_step = 0
+
+        # 0a. Vieillissement de la population (si démographie activée)
+        if self.enable_demographics and self.time_scale == "years":
+            self.agent_ages = self.demographics.age_population(self.agent_ages)
+
+        # 0b. Catastrophes aléatoires (si activées)
+        if self.enable_catastrophes and self.time_scale == "years":
+            new_events = self.catastrophe_manager.update(
+                self.time, self.agents, self.agent_ages, self
+            )
+            catastrophes_this_step = len(new_events)
+
         agent_ids = list(self.agents.keys())
+        if not agent_ids:  # Sécurité : arrête si plus d'agents
+            return
 
         # 1. Conversions V -> U aléatoires (agents activent leur patrimoine)
         # CORRECTION : Réduit la fréquence et le montant pour éviter vidange de V
@@ -735,6 +803,9 @@ class IRISEconomy:
 
         # 3. Transactions U entre agents
         for _ in range(n_transactions):
+            agent_ids = list(self.agents.keys())
+            if len(agent_ids) < 2:
+                break
             from_id = np.random.choice(agent_ids)
             to_id = np.random.choice(agent_ids)
             if from_id != to_id:
@@ -750,11 +821,51 @@ class IRISEconomy:
         # 5. Régulation automatique
         self.regulate()
 
-        # 6. Enregistrement des métriques
-        self._record_metrics()
+        # 6. Démographie : décès et naissances (si activée et échelle = années)
+        if self.enable_demographics and self.time_scale == "years":
+            # 6a. Traitement des décès
+            deceased_ids = self.demographics.process_deaths(
+                self.agents, self.agent_ages, self.time
+            )
+            deaths_this_step = len(deceased_ids)
 
-    def _record_metrics(self):
-        """Enregistre les métriques du système pour analyse"""
+            # 6b. Héritage et suppression des agents décédés
+            for deceased_id in deceased_ids:
+                if deceased_id in self.agents:
+                    # Transfert du patrimoine à un héritier
+                    if len(self.agents) > 1:
+                        heir_id = self.demographics.inherit_wealth(
+                            deceased_id, self.agents, self.agent_ages
+                        )
+
+                    # Suppression de l'agent décédé
+                    del self.agents[deceased_id]
+                    if deceased_id in self.agent_ages:
+                        del self.agent_ages[deceased_id]
+
+            # 6c. Traitement des naissances
+            new_agents = self.demographics.process_births(
+                self.agents, self.agent_ages, self.assets, self.time
+            )
+            births_this_step = len(new_agents)
+
+            # Ajout des nouveaux agents au système
+            for new_agent in new_agents:
+                self.agents[new_agent.id] = new_agent
+                self.agent_ages[new_agent.id] = 0  # Les nouveau-nés ont 0 ans
+
+        # 7. Enregistrement des métriques
+        self._record_metrics(births_this_step, deaths_this_step, catastrophes_this_step)
+
+    def _record_metrics(self, births=0, deaths=0, catastrophes=0):
+        """
+        Enregistre les métriques du système pour analyse
+
+        Args:
+            births: Nombre de naissances à cet instant
+            deaths: Nombre de décès à cet instant
+            catastrophes: Nombre de catastrophes à cet instant
+        """
         self.history['time'].append(self.time)
         self.history['total_V'].append(sum(a.V_balance for a in self.agents.values()))
         self.history['total_U'].append(sum(a.U_balance for a in self.agents.values()))
@@ -764,6 +875,18 @@ class IRISEconomy:
         self.history['kappa'].append(self.rad.kappa)
         self.history['gini_coefficient'].append(self.gini_coefficient())
         self.history['circulation_rate'].append(self.circulation_rate())
+
+        # Métriques démographiques
+        self.history['population'].append(len(self.agents))
+        if self.enable_demographics and self.agent_ages:
+            avg_age = sum(self.agent_ages.values()) / len(self.agent_ages)
+            self.history['avg_age'].append(avg_age)
+        else:
+            self.history['avg_age'].append(0)
+
+        self.history['births'].append(births)
+        self.history['deaths'].append(deaths)
+        self.history['catastrophes'].append(catastrophes)
 
     def simulate(self, steps: int = 1000, n_transactions: int = 10):
         """
