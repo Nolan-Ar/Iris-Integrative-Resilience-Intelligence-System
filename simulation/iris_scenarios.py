@@ -444,47 +444,56 @@ class ScenarioRunner:
         print("\n" + "="*70 + "\n")
 
 
-def run_full_analysis(n_agents: int = 100, output_dir: str = "results"):
+def run_full_analysis(n_agents: int = 100, output_dir: str = "results",
+                     steps: int = 1000, shock_time: int = 500, seed: int = None):
     """
-    Exécute l'analyse complète avec tous les scénarios
+    Execute l'analyse complete avec tous les scenarios
 
     Args:
         n_agents: Nombre d'agents
-        output_dir: Répertoire de sortie
+        output_dir: Repertoire de sortie
+        steps: Nombre de pas de temps pour chaque scenario
+        shock_time: Moment du choc pour les scenarios de choc
+        seed: Graine aleatoire pour reproductibilite (None = aleatoire)
     """
+    # Fixe la graine si specifiee (pour reproductibilite)
+    if seed is not None:
+        np.random.seed(seed)
+        print(f"Graine aleatoire fixee : {seed}")
+
     runner = ScenarioRunner(n_agents=n_agents, output_dir=output_dir)
 
-    # Scénario 1 : Baseline
-    economy_baseline = runner.run_baseline(steps=1000)
+    # Scenario 1 : Baseline
+    economy_baseline = runner.run_baseline(steps=steps)
 
-    # Scénario 2 : Choc de richesse modéré
+    # Scenario 2 : Choc de richesse modere
     economy_wealth_loss = runner.run_wealth_loss_shock(
-        steps=1000, shock_time=500, magnitude=0.3
+        steps=steps, shock_time=shock_time, magnitude=0.3
     )
 
-    # Scénario 3 : Choc de demande important
+    # Scenario 3 : Choc de demande important
     economy_demand = runner.run_demand_surge_shock(
-        steps=1000, shock_time=500, magnitude=0.5
+        steps=steps, shock_time=shock_time, magnitude=0.5
     )
 
-    # Scénario 4 : Choc d'offre
+    # Scenario 4 : Choc d'offre
     economy_supply = runner.run_supply_shock(
-        steps=1000, shock_time=500, magnitude=2.0
+        steps=steps, shock_time=shock_time, magnitude=2.0
     )
 
-    # Scénario 5 : Crise systémique
-    economy_crisis = runner.run_systemic_crisis(steps=1500)
+    # Scenario 5 : Crise systemique
+    economy_crisis = runner.run_systemic_crisis(steps=int(steps * 1.5))
 
-    # Scénario 6 : Système sans régulation (témoin)
+    # Scenario 6 : Systeme sans regulation (temoin)
     economy_no_reg = runner.run_comparison_no_regulation(
-        steps=1000, shock_time=500, shock_type='wealth_loss', magnitude=0.3
+        steps=steps, shock_time=shock_time, shock_type='wealth_loss', magnitude=0.3
     )
 
     # Comparaisons et rapports
-    runner.compare_scenarios(shock_time=500)
+    runner.compare_scenarios(shock_time=shock_time)
     runner.generate_comparative_report()
 
-    # Visualisations individuelles détaillées
+    # Visualisations individuelles detaillees
     viz = IRISVisualizer(output_dir)
 
     print("\nGénération des visualisations détaillées...")
