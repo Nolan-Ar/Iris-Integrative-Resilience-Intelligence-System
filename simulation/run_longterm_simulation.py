@@ -171,7 +171,17 @@ Exemples d'utilisation :
         # Simulation d'une annee
         # On fait plusieurs steps par annee pour avoir assez d'activite economique
         # Mais la demographie et les catastrophes ne se declenchent qu'une fois
-        economy.step(n_transactions=50)
+        # Optimisation : réduire les transactions pour les grandes populations
+        pop_size = len(economy.agents)
+        if pop_size < 500:
+            n_trans = 50
+        elif pop_size < 5000:
+            n_trans = 20
+        elif pop_size < 50000:
+            n_trans = 10
+        else:
+            n_trans = 5
+        economy.step(n_transactions=n_trans)
 
         # Verification de l'extinction de la population
         if len(economy.agents) == 0:
