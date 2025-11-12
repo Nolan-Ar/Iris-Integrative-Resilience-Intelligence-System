@@ -4,6 +4,92 @@ Toutes les modifications notables de ce projet sont documentees dans ce fichier.
 
 ---
 
+## [Version 2.1] - 2025-11-12
+
+### Ajouts Majeurs
+
+#### Controle Population Maximale
+- **Nouveau parametre `max_population`** (defaut: 10,000 agents)
+  - Evite explosion demographique incontr ollee
+  - Configurable via `--max-population` en CLI
+  - Implementation dans `Demographics.process_births()`
+  - Passage via `IRISEconomy.__init__()`
+- **Validation robuste** : plafonnement automatique naissances quand limite atteinte
+- **Performance** : permet simulations 1000+ ans dans temps raisonnable
+
+#### Optimisation Performance Grandes Populations
+- **Reduction adaptive transactions** selon taille population :
+  - < 500 agents : 50 transactions/an
+  - 500-5000 : 20 transactions/an
+  - 5000-50000 : 10 transactions/an
+  - > 50000 : 5 transactions/an
+- **Impact** : acceleration significative simulations long terme
+- **Implementation** : `run_longterm_simulation.py` ligne 174-184
+
+#### Securite Demographique Renforcee
+- **Validations NaN/Inf** dans calculs taux naissance :
+  - Verification `np.isfinite()` sur tous calculs sensibles
+  - Protection contre richesses negatives
+  - Plafond croissance 10% population reproductrice/an
+- **Protection Poisson** : validation `expected_births` avant appel
+- **Gestion erreurs** : retour gracieux si parametres invalides
+
+### Test Ultime : Simulation 1000 Ans ⭐
+
+**Configuration :**
+- Duree : 1000 ans (echelle millenaire)
+- Population initiale : 100 agents
+- Population maximale : 10,000 agents
+- Seed : 42 (reproductibilite)
+- Catastrophes : 5%/an, tous types et echelles
+
+**Resultats Cles :**
+
+*Demographie :*
+- Population : 100 → 10,000 agents (+9,900%)
+- Naissances : 87,464 | Deces : 77,564 | Croissance nette : +9,900
+- Age moyen : 36 → 42.3 ans
+- Plafond atteint : annee 390
+
+*Economie :*
+- Richesse totale : 2.44e7 → 2.97e8 (+1118%)
+- Thermometre moyen : 0.5317 ± 0.3539
+- Temps en equilibre : 7.3%
+- Gini : 0.6674 → 0.6648 (-0.4%)
+
+*Catastrophes :*
+- Total evenements : 65 (dont 7 globaux, 22 regionaux, 36 locaux)
+- Magnitude moyenne : 0.334
+- Impact majeur : secheresse globale annee 963 (94M richesse perdue)
+
+**Capacites Demonstrees :**
+- ✅ Survie systemique sur echelle millenaire
+- ✅ Absorption 65 catastrophes majeures recurrentes
+- ✅ Maintien population stable 610 ans au plafond
+- ✅ Generation richesse continue (+1118%)
+- ✅ Transmission intergenerationnelle (87K naissances)
+- ✅ Regulation automatique sans intervention centrale
+
+**Limites Identifiees :**
+- ⚠️ Thermometre systematiquement sous cible (0.53 vs 1.0)
+- ⚠️ Stabilite moyenne (7% temps en equilibre)
+- ⚠️ Inegalites persistantes (Gini ~0.66)
+- ⚠️ Plafond population necessaire pour performance
+
+### Corrections Bugs
+
+- **Fix critique demographics** : protection NaN dans `process_births()`
+- **Fix warning numpy** : validation log dans `_calculate_wealth_modifier()`
+- **Fix performance** : optimisation transactions adaptatives
+
+### Documentation
+
+- **README.md** : ajout section "Simulation 1000 ans"
+- **CHANGELOG.md** : documentation complete version 2.1
+- **Visualisations** : nouveaux graphiques long terme generees
+
+---
+
 ## [Version 2.0] - 2025-11-11
 
 ### Ajouts Majeurs
