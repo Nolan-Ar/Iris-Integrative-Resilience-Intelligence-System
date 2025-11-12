@@ -236,7 +236,8 @@ class IRISEconomy:
                  universal_income_rate: float = 0.01,
                  enable_demographics: bool = False,
                  enable_catastrophes: bool = False,
-                 time_scale: str = "steps"):
+                 time_scale: str = "steps",
+                 max_population: int = 10000):
         """
         Initialise l'économie IRIS
 
@@ -247,6 +248,7 @@ class IRISEconomy:
             enable_demographics: Active la démographie (naissances/décès)
             enable_catastrophes: Active les catastrophes aléatoires
             time_scale: "steps" ou "years" pour l'échelle de temps
+            max_population: Population maximale (0 = illimité, défaut: 10000)
         """
         self.agents: Dict[str, Agent] = {}
         self.assets: Dict[str, Asset] = {}
@@ -256,6 +258,7 @@ class IRISEconomy:
         self.time_scale = time_scale
         self.enable_demographics = enable_demographics
         self.enable_catastrophes = enable_catastrophes
+        self.max_population = max_population
 
         # Modules optionnels
         self.demographics = None
@@ -265,7 +268,7 @@ class IRISEconomy:
         # Si démographie activée, initialise le module
         if enable_demographics:
             from iris_demographics import Demographics
-            self.demographics = Demographics()
+            self.demographics = Demographics(max_population=max_population)
 
         # Si catastrophes activées, initialise le gestionnaire
         if enable_catastrophes:

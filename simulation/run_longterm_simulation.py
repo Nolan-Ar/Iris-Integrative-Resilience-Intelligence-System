@@ -100,6 +100,13 @@ Exemples d'utilisation :
         help='Graine aleatoire pour reproductibilite (default: None = aleatoire)'
     )
 
+    parser.add_argument(
+        '--max-population',
+        type=int,
+        default=10000,
+        help='Population maximale (0 = illimite, default: 10000)'
+    )
+
     args = parser.parse_args()
 
     # Fixe la graine si specifiee (pour reproductibilite)
@@ -118,6 +125,7 @@ Exemples d'utilisation :
     print(f"Configuration :")
     print(f"  Duree : {args.years} ans")
     print(f"  Agents initiaux : {args.agents}")
+    print(f"  Population maximale : {args.max_population if args.max_population > 0 else 'Illimitee'}")
     print(f"  Demographie : {'OUI' if not args.no_demographics else 'NON'}")
     print(f"  Catastrophes : {'OUI' if not args.no_catastrophes else 'NON'}")
     if not args.no_catastrophes:
@@ -136,7 +144,8 @@ Exemples d'utilisation :
         initial_agents=args.agents,
         enable_demographics=not args.no_demographics,
         enable_catastrophes=not args.no_catastrophes,
-        time_scale="years"
+        time_scale="years",
+        max_population=args.max_population
     )
 
     # Ajuste la frequence des catastrophes si specifie
@@ -171,7 +180,17 @@ Exemples d'utilisation :
         # Simulation d'une annee
         # On fait plusieurs steps par annee pour avoir assez d'activite economique
         # Mais la demographie et les catastrophes ne se declenchent qu'une fois
-        economy.step(n_transactions=50)
+        # Optimisation : réduire les transactions pour les grandes populations
+        pop_size = len(economy.agents)
+        if pop_size < 500:
+            n_trans = 50
+        elif pop_size < 5000:
+            n_trans = 20
+        elif pop_size < 50000:
+            n_trans = 10
+        else:
+            n_trans = 5
+        economy.step(n_transactions=n_trans)
 
         # Verification de l'extinction de la population
         if len(economy.agents) == 0:

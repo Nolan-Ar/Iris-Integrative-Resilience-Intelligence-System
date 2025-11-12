@@ -38,7 +38,8 @@ class Demographics:
                  min_reproduction_age: int = 18,
                  max_reproduction_age: int = 50,
                  retirement_age: int = 65,
-                 wealth_influence: bool = True):
+                 wealth_influence: bool = True,
+                 max_population: int = 10000):
         """
         Initialise le module démographique
 
@@ -49,6 +50,7 @@ class Demographics:
             max_reproduction_age: Âge maximum de reproduction
             retirement_age: Âge de la retraite
             wealth_influence: Si True, la richesse influence natalité/mortalité
+            max_population: Population maximale (0 = illimité, défaut: 10000)
         """
         self.life_expectancy = life_expectancy
         self.birth_rate = birth_rate
@@ -56,6 +58,7 @@ class Demographics:
         self.max_reproduction_age = max_reproduction_age
         self.retirement_age = retirement_age
         self.wealth_influence = wealth_influence
+        self.max_population = max_population
 
         # Compteurs pour statistiques
         self.total_births = 0
@@ -122,8 +125,16 @@ class Demographics:
         # Richesse totale de l'agent
         agent_wealth = agent.V_balance + agent.U_balance
 
+        # Sécurité : éviter les richesses négatives
+        agent_wealth = max(0.0, agent_wealth)
+
         # Ratio richesse relative
         wealth_ratio = agent_wealth / max(avg_wealth, 1.0)
+
+        # Sécurité : s'assurer que wealth_ratio est positif et fini
+        wealth_ratio = max(0.0, wealth_ratio)
+        if not np.isfinite(wealth_ratio):
+            return 1.0
 
         # Modification logarithmique (évite les extrêmes)
         # Réduit l'influence de la richesse pour éviter spirale de pauvreté
@@ -294,9 +305,34 @@ class Demographics:
         else:
             adjusted_birth_rate = self.birth_rate
 
+        # Sécurité : s'assurer que le taux est positif et valide
+        adjusted_birth_rate = max(0.0, float(adjusted_birth_rate))
+        if not np.isfinite(adjusted_birth_rate):
+            adjusted_birth_rate = self.birth_rate
+
         # Calcul du nombre de naissances attendues
         expected_births = len(reproductive_agents) * adjusted_birth_rate
-        actual_births = np.random.poisson(expected_births)
+
+        # Sécurité : valider expected_births avant Poisson
+        expected_births = max(0.0, float(expected_births))
+        if not np.isfinite(expected_births):
+            expected_births = 0.0
+
+        # Limiter la croissance pour éviter explosion démographique
+        # Plafond à 10% de la population reproductrice par an
+        max_births = int(len(reproductive_agents) * 0.1)
+        expected_births = min(expected_births, max_births)
+
+        actual_births = np.random.poisson(expected_births) if expected_births > 0 else 0
+
+        # Contrôle de population : limiter aux places disponibles
+        if self.max_population > 0:
+            current_pop = len(agents)
+            available_slots = max(0, self.max_population - current_pop)
+            actual_births = min(actual_births, available_slots)
+            if actual_births == 0 and current_pop >= self.max_population:
+                # Population au maximum, pas de naissances
+                return new_agents
 
         for _ in range(actual_births):
             # Sélectionne un "parent" aléatoire
