@@ -100,6 +100,13 @@ Exemples d'utilisation :
         help='Graine aleatoire pour reproductibilite (default: None = aleatoire)'
     )
 
+    parser.add_argument(
+        '--max-population',
+        type=int,
+        default=10000,
+        help='Population maximale (0 = illimite, default: 10000)'
+    )
+
     args = parser.parse_args()
 
     # Fixe la graine si specifiee (pour reproductibilite)
@@ -118,6 +125,7 @@ Exemples d'utilisation :
     print(f"Configuration :")
     print(f"  Duree : {args.years} ans")
     print(f"  Agents initiaux : {args.agents}")
+    print(f"  Population maximale : {args.max_population if args.max_population > 0 else 'Illimitee'}")
     print(f"  Demographie : {'OUI' if not args.no_demographics else 'NON'}")
     print(f"  Catastrophes : {'OUI' if not args.no_catastrophes else 'NON'}")
     if not args.no_catastrophes:
@@ -136,7 +144,8 @@ Exemples d'utilisation :
         initial_agents=args.agents,
         enable_demographics=not args.no_demographics,
         enable_catastrophes=not args.no_catastrophes,
-        time_scale="years"
+        time_scale="years",
+        max_population=args.max_population
     )
 
     # Ajuste la frequence des catastrophes si specifie

@@ -38,7 +38,8 @@ class Demographics:
                  min_reproduction_age: int = 18,
                  max_reproduction_age: int = 50,
                  retirement_age: int = 65,
-                 wealth_influence: bool = True):
+                 wealth_influence: bool = True,
+                 max_population: int = 10000):
         """
         Initialise le module démographique
 
@@ -49,6 +50,7 @@ class Demographics:
             max_reproduction_age: Âge maximum de reproduction
             retirement_age: Âge de la retraite
             wealth_influence: Si True, la richesse influence natalité/mortalité
+            max_population: Population maximale (0 = illimité, défaut: 10000)
         """
         self.life_expectancy = life_expectancy
         self.birth_rate = birth_rate
@@ -56,6 +58,7 @@ class Demographics:
         self.max_reproduction_age = max_reproduction_age
         self.retirement_age = retirement_age
         self.wealth_influence = wealth_influence
+        self.max_population = max_population
 
         # Compteurs pour statistiques
         self.total_births = 0
@@ -321,6 +324,15 @@ class Demographics:
         expected_births = min(expected_births, max_births)
 
         actual_births = np.random.poisson(expected_births) if expected_births > 0 else 0
+
+        # Contrôle de population : limiter aux places disponibles
+        if self.max_population > 0:
+            current_pop = len(agents)
+            available_slots = max(0, self.max_population - current_pop)
+            actual_births = min(actual_births, available_slots)
+            if actual_births == 0 and current_pop >= self.max_population:
+                # Population au maximum, pas de naissances
+                return new_agents
 
         for _ in range(actual_births):
             # Sélectionne un "parent" aléatoire
