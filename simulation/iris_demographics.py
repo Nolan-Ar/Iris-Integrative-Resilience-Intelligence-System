@@ -122,8 +122,16 @@ class Demographics:
         # Richesse totale de l'agent
         agent_wealth = agent.V_balance + agent.U_balance
 
+        # Sécurité : éviter les richesses négatives
+        agent_wealth = max(0.0, agent_wealth)
+
         # Ratio richesse relative
         wealth_ratio = agent_wealth / max(avg_wealth, 1.0)
+
+        # Sécurité : s'assurer que wealth_ratio est positif et fini
+        wealth_ratio = max(0.0, wealth_ratio)
+        if not np.isfinite(wealth_ratio):
+            return 1.0
 
         # Modification logarithmique (évite les extrêmes)
         # Réduit l'influence de la richesse pour éviter spirale de pauvreté
@@ -294,9 +302,25 @@ class Demographics:
         else:
             adjusted_birth_rate = self.birth_rate
 
+        # Sécurité : s'assurer que le taux est positif et valide
+        adjusted_birth_rate = max(0.0, float(adjusted_birth_rate))
+        if not np.isfinite(adjusted_birth_rate):
+            adjusted_birth_rate = self.birth_rate
+
         # Calcul du nombre de naissances attendues
         expected_births = len(reproductive_agents) * adjusted_birth_rate
-        actual_births = np.random.poisson(expected_births)
+
+        # Sécurité : valider expected_births avant Poisson
+        expected_births = max(0.0, float(expected_births))
+        if not np.isfinite(expected_births):
+            expected_births = 0.0
+
+        # Limiter la croissance pour éviter explosion démographique
+        # Plafond à 10% de la population reproductrice par an
+        max_births = int(len(reproductive_agents) * 0.1)
+        expected_births = min(expected_births, max_births)
+
+        actual_births = np.random.poisson(expected_births) if expected_births > 0 else 0
 
         for _ in range(actual_births):
             # Sélectionne un "parent" aléatoire
