@@ -107,6 +107,7 @@ class Agent:
     U_balance: float = 0.0  # Solde en Usage (liquidité, monnaie de transaction)
     assets: List[Asset] = field(default_factory=list)  # Liste des actifs possédés
     contribution_score: float = 0.0  # Score de contribution prouvée (pour gouvernance future)
+    sex: str = "female"  # Sexe de l'agent (pour démographie réaliste)
 
     def add_asset(self, asset: Asset):
         """
@@ -319,8 +320,8 @@ class IRISEconomy:
         # Si reproductibilité nécessaire, utiliser --seed en ligne de commande
 
         for i in range(n_agents):
-            # Crée un nouvel agent
-            agent = Agent(id=f"agent_{i}")
+            # Crée un nouvel agent avec sexe aléatoire (50/50)
+            agent = Agent(id=f"agent_{i}", sex=np.random.choice(['male', 'female']))
 
             # Distribution log-normale des richesses (réaliste)
             # La plupart des agents ont peu d'actifs, quelques-uns en ont beaucoup
@@ -854,6 +855,15 @@ class IRISEconomy:
             for new_agent in new_agents:
                 self.agents[new_agent.id] = new_agent
                 self.agent_ages[new_agent.id] = 0  # Les nouveau-nés ont 0 ans
+
+            # 6d. Traitement de la migration (stabilisateur de population)
+            migrants = self.demographics.process_migration(
+                self.agents, self.agent_ages, self.assets, self.time
+            )
+
+            # Ajout des migrants au système (ages déjà assignés dans process_migration)
+            for migrant in migrants:
+                self.agents[migrant.id] = migrant
 
         # 7. Enregistrement des métriques
         self._record_metrics(births_this_step, deaths_this_step, catastrophes_this_step)
