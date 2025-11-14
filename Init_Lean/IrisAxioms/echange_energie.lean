@@ -61,8 +61,8 @@ theorem theoreme_echange_energie
       constructor
       · -- Preuve de w_S + w_U = 1
         -- Grâce à h_nonzero, S_burn + U_burn ≠ 0
-        field_simp [w_S, w_U, h_nonzero.ne.symm]
-        ring
+        have h_denom_pos : S_burn + U_burn ≠ 0 := h_nonzero.ne.symm
+        field_simp [w_S, w_U, h_denom_pos]
       constructor
       · -- Preuve de 0 ≤ w_S
         apply div_nonneg h_burn.1
@@ -114,10 +114,8 @@ theorem corollaire_creation_valeur_pure
   let ΔV := η * Δt * Et
   0 ≤ ΔV := by
   intro η Et ΔV
-  have : Et = (1/2 : ℝ) * S_burn + (1/2 : ℝ) * U_burn := by ring
-  rw [this]
   have h_poids : (1/2 : ℝ) + (1/2 : ℝ) = 1 ∧ 0 ≤ (1/2 : ℝ) ∧ 0 ≤ (1/2 : ℝ) := by norm_num
-  exact A6_creation_valeur_energetique η_phys μ_social Δt (1/2) (1/2) S_burn U_burn 
+  exact A6_creation_valeur_energetique η_phys μ_social Δt (1/2) (1/2) S_burn U_burn
          h_phys h_social h_poids h_burn h_dt
 
 -- Échange avec efficacité maximale
@@ -134,10 +132,11 @@ theorem corollaire_efficacite_maximale
   intro η_phys μ_social η Et ΔV
   have h_phys : 0 < η_phys ∧ η_phys ≤ 1 := by norm_num
   have h_social : 1 ≤ μ_social ∧ μ_social ≤ 2 := by norm_num
-  have h_nonneg : 0 ≤ ΔV := 
+  have h_nonneg : 0 ≤ ΔV :=
     corollaire_creation_valeur_pure η_phys μ_social Δt S_burn U_burn h_phys h_social h_dt h_burn
   constructor
-  · norm_num [η, η_phys, μ_social]
+  · simp [ΔV, η, Et, η_phys, μ_social]
+    ring
   · exact h_nonneg
 
 /-!

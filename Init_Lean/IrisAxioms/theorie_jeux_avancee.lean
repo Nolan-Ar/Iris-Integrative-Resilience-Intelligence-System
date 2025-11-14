@@ -152,15 +152,23 @@ noncomputable def transition (params : ParamsRegulation) (etat : EtatSysteme)
       -- RU_new = max 0 (RU_base * (1 - β * r_new))
       -- max garantit que le résultat est ≥ 0
       simp [RU_new, calcul_RU]
-      apply le_max_left
     hr := by
       constructor
       · -- 0 ≤ r_new
-        simp [r_new, nouveau_r]
-        split_ifs <;> linarith
+        simp only [r_new, nouveau_r]
+        split_ifs with h
+        · -- Cas V > 0
+          have : 0 ≤ D_new := by linarith [etat.hD, h3]
+          have : 0 < etat.V := h
+          have : 0 ≤ D_new / etat.V := div_nonneg (by linarith) (le_of_lt h)
+          exact le_min this (by norm_num)
+        · -- Cas V ≤ 0, donc r_new = 0
+          norm_num
       · -- r_new ≤ 1
-        simp [r_new, nouveau_r]
-        split_ifs <;> linarith }
+        simp only [r_new, nouveau_r]
+        split_ifs
+        · exact min_le_right _ _
+        · norm_num }
 
 /-- Profil de stratégies sur un horizon T -/
 def ProfilTemporel (n_joueurs : ℕ) := ℕ → Fin n_joueurs → Action
