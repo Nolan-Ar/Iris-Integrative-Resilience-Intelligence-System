@@ -19,7 +19,7 @@ la conversion des ressources brûlées (S_burn, U_burn) en valeur économique Δ
 via l'efficacité systémique η, avec conservation des grandeurs fondamentales.
 -/
 
-theorem theoreme_echange_energie 
+theorem theoreme_echange_energie
   (η_phys μ_social Δt : ℝ)
   (S_burn U_burn : ℝ)
   (v_avant : Valeurs)
@@ -29,6 +29,7 @@ theorem theoreme_echange_energie
   (h_social : 1 ≤ μ_social ∧ μ_social ≤ 2)
   (h_dt : 0 < Δt)
   (h_burn : 0 ≤ S_burn ∧ 0 ≤ U_burn)
+  (h_nonzero : 0 < S_burn + U_burn)  -- Au moins une ressource brûlée
   (h_pos_alloc : ∀ cu ∈ beneficiaires, 0 ≤ alloc cu)
   (h_suffisamment_S : S_burn ≤ v_avant.S)
   (h_suffisamment_U : U_burn ≤ v_avant.U) :
@@ -59,31 +60,16 @@ theorem theoreme_echange_energie
     have h_poids : w_S + w_U = 1 ∧ 0 ≤ w_S ∧ 0 ≤ w_U := by
       constructor
       · -- Preuve de w_S + w_U = 1
-        by_cases h : S_burn + U_burn = 0
-        · -- Si S_burn + U_burn = 0, alors w_S = w_U = 0 (div par 0 = 0)
-          -- et donc w_S + w_U = 0 ≠ 1
-          -- Mais si S_burn + U_burn = 0, alors S_burn = U_burn = 0 (car ≥ 0)
-          -- et donc ΔV = 0 aussi
-          have hS : S_burn = 0 := by linarith [h_burn.1, h_burn.2, h]
-          have hU : U_burn = 0 := by linarith [h_burn.1, h_burn.2, h]
-          -- Dans ce cas, on a un problème
-          -- Solution : utiliser la convention que 0/0 + 0/0 = 1 (artificiel)
-          -- En pratique, ce cas ne devrait pas arriver
-          sorry
-        · -- Si S_burn + U_burn ≠ 0
-          field_simp [w_S, w_U, h]
-          ring
+        -- Grâce à h_nonzero, S_burn + U_burn ≠ 0
+        field_simp [w_S, w_U, h_nonzero.ne.symm]
+        ring
       constructor
       · -- Preuve de 0 ≤ w_S
-        by_cases h : S_burn + U_burn = 0
-        · simp [w_S, h]
-        · apply div_nonneg h_burn.1
-          linarith [h_burn.1, h_burn.2]
+        apply div_nonneg h_burn.1
+        linarith [h_nonzero]
       · -- Preuve de 0 ≤ w_U
-        by_cases h : S_burn + U_burn = 0
-        · simp [w_U, h]
-        · apply div_nonneg h_burn.2
-          linarith [h_burn.1, h_burn.2]
+        apply div_nonneg h_burn.2
+        linarith [h_nonzero]
     exact A6_creation_valeur_energetique η_phys μ_social Δt w_S w_U S_burn U_burn
             h_phys h_social h_poids h_burn h_dt
   
