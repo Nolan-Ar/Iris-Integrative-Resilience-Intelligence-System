@@ -51,12 +51,7 @@ theorem theoreme_echange_energie
     v_apres.S = v_avant.S - S_burn ∧
     v_apres.U = v_avant.U - U_burn + ΔU_distribue ∧
     v_apres.V = v_avant.V + ΔV ∧
-    v_apres.D = v_avant.D ∧
-    -- 5. Préservation des contraintes
-    v_apres.hS : 0 ≤ v_apres.S ∧
-    v_apres.hU : 0 ≤ v_apres.U ∧
-    v_apres.hV : 0 ≤ v_apres.V ∧
-    v_apres.hD : 0 ≤ v_apres.D := by
+    v_apres.D = v_avant.D := by
   intro η w_S w_U Et ΔV
   
   -- 1. Création de valeur par A6
@@ -95,9 +90,8 @@ theorem theoreme_echange_energie
     ⟨by linarith [v_avant.hV, hΔV_nonneg], v_avant.hD⟩
   
   -- 5. Assemblage de la preuve
-  refine ⟨v_apres, ΔU_distribue, hΔV_nonneg, rfl, h_distribution, 
-          h_conservation.1, h_conservation.2, ?_, ?_, ?_, ?_, 
-          v_apres.hS, v_apres.hU, v_apres.hV, v_apres.hD⟩
+  refine ⟨v_apres, ΔU_distribue, hΔV_nonneg, rfl, h_distribution,
+          h_conservation.1, h_conservation.2, ?_, ?_, ?_, ?_⟩
   all_goals { simp [v_apres] }
 
 /-!
