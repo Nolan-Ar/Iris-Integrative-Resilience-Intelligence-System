@@ -19,7 +19,7 @@ la conversion des ressources brûlées (S_burn, U_burn) en valeur économique Δ
 via l'efficacité systémique η, avec conservation des grandeurs fondamentales.
 -/
 
-theorem theoreme_echange_energie 
+theorem theoreme_echange_energie
   (η_phys μ_social Δt : ℝ)
   (S_burn U_burn : ℝ)
   (v_avant : Valeurs)
@@ -29,6 +29,7 @@ theorem theoreme_echange_energie
   (h_social : 1 ≤ μ_social ∧ μ_social ≤ 2)
   (h_dt : 0 < Δt)
   (h_burn : 0 ≤ S_burn ∧ 0 ≤ U_burn)
+  (h_nonzero : 0 < S_burn + U_burn)  -- Au moins une ressource brûlée
   (h_pos_alloc : ∀ cu ∈ beneficiaires, 0 ≤ alloc cu)
   (h_suffisamment_S : S_burn ≤ v_avant.S)
   (h_suffisamment_U : U_burn ≤ v_avant.U) :
@@ -58,19 +59,17 @@ theorem theoreme_echange_energie
   have hΔV_nonneg : 0 ≤ ΔV := by
     have h_poids : w_S + w_U = 1 ∧ 0 ≤ w_S ∧ 0 ≤ w_U := by
       constructor
-      · field_simp [w_S, w_U]
-        by_cases h : S_burn + U_burn = 0
-        · simp [h]
-        · field_simp [h]
+      · -- Preuve de w_S + w_U = 1
+        -- Grâce à h_nonzero, S_burn + U_burn ≠ 0
+        field_simp [w_S, w_U, h_nonzero.ne.symm]
+        ring
       constructor
-      · by_cases h : S_burn + U_burn = 0
-        · simp [w_S, h]
-        · apply div_nonneg h_burn.1
-          linarith [h_burn.1, h_burn.2]
-      · by_cases h : S_burn + U_burn = 0
-        · simp [w_U, h]
-        · apply div_nonneg h_burn.2
-          linarith [h_burn.1, h_burn.2]
+      · -- Preuve de 0 ≤ w_S
+        apply div_nonneg h_burn.1
+        linarith [h_nonzero]
+      · -- Preuve de 0 ≤ w_U
+        apply div_nonneg h_burn.2
+        linarith [h_nonzero]
     exact A6_creation_valeur_energetique η_phys μ_social Δt w_S w_U S_burn U_burn
             h_phys h_social h_poids h_burn h_dt
   
@@ -104,7 +103,7 @@ theorem theoreme_echange_energie
 -/
 
 -- Version simplifiée pour l'échange énergétique pur
-corollary corollaire_creation_valeur_pure
+theorem corollaire_creation_valeur_pure
   (η_phys μ_social Δt S_burn U_burn : ℝ)
   (h_phys : 0 < η_phys ∧ η_phys ≤ 1)
   (h_social : 1 ≤ μ_social ∧ μ_social ≤ 2)
@@ -122,7 +121,7 @@ corollary corollaire_creation_valeur_pure
          h_phys h_social h_poids h_burn h_dt
 
 -- Échange avec efficacité maximale
-corollary corollaire_efficacite_maximale
+theorem corollaire_efficacite_maximale
   (Δt S_burn U_burn : ℝ)
   (h_dt : 0 < Δt)
   (h_burn : 0 ≤ S_burn ∧ 0 ≤ U_burn) :

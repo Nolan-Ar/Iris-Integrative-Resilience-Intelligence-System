@@ -52,7 +52,7 @@ def utilite_creation_valeur (j : Joueur) (s : Strategie) (ΔV : ℝ) : ℝ :=
   face à un profil `strategies` si aucune déviation unilatérale `s'` ne lui donne
   une utilité plus grande (pour un même ΔV, ici symbolique).
 -/
-def meilleure_reponse (jeu : JeuIRIS) (strategies : Joueur → Strategie) (joueur : Joueur) : Prop :=
+def meilleure_reponse (_jeu : JeuIRIS) (strategies : Joueur → Strategie) (joueur : Joueur) : Prop :=
   ∀ s' : Strategie,
     let s := strategies joueur
     let ΔV := 1.0  -- placeholder : on prendra plus tard un ΔV calculé via les axiomes IRIS
@@ -114,7 +114,7 @@ structure ParamsRegulation where
   h_γ : 0 ≤ γ  -- Détection a un coût non-négatif
 
 /-- Gain immédiat d'une fraude (court terme) -/
-def gain_fraude (params : ParamsRegulation) (etat : EtatSysteme) : ℝ :=
+def gain_fraude (_params : ParamsRegulation) (etat : EtatSysteme) : ℝ :=
   0.1 * etat.RU  -- Gain immédiat = 10% du RU actuel (exemple)
 
 /-- Mise à jour du passif D suite à une fraude -/
@@ -122,15 +122,15 @@ def maj_D_fraude (params : ParamsRegulation) (D_avant : ℝ) : ℝ :=
   D_avant + params.α
 
 /-- Calcul du nouveau taux de charge r = D / V -/
-def nouveau_r (V D : ℝ) : ℝ :=
+noncomputable def nouveau_r (V D : ℝ) : ℝ :=
   if V > 0 then min (D / V) 1 else 0
 
 /-- Règle de régulation : calcul du RU en fonction de r -/
-def calcul_RU (RU_base : ℝ) (r : ℝ) (β : ℝ) : ℝ :=
+noncomputable def calcul_RU (RU_base : ℝ) (r : ℝ) (β : ℝ) : ℝ :=
   max 0 (RU_base * (1 - β * r))
 
 /-- Fonction de transition : état(t) × actions → état(t+1) -/
-def transition (params : ParamsRegulation) (etat : EtatSysteme)
+noncomputable def transition (params : ParamsRegulation) (etat : EtatSysteme)
                (nb_joueurs : ℕ) (nb_fraudes : ℕ) : EtatSysteme :=
   -- D augmente proportionnellement au nombre de fraudes
   let D_new := etat.D + (nb_fraudes : ℝ) * params.α
@@ -144,24 +144,29 @@ def transition (params : ParamsRegulation) (etat : EtatSysteme)
     r := r_new
     hV := etat.hV
     hD := by
-      have : 0 ≤ (nb_fraudes : ℝ) := Nat.cast_nonneg nb_fraudes
-      have : 0 < params.α := params.h_α
-      linarith [etat.hD]
+      have h1 : 0 ≤ (nb_fraudes : ℝ) := Nat.cast_nonneg nb_fraudes
+      have h2 : 0 < params.α := params.h_α
+      have h3 : 0 ≤ (nb_fraudes : ℝ) * params.α := mul_nonneg h1 (le_of_lt h2)
+      linarith [etat.hD, h3]
     hRU := by
-      unfold calcul_RU
-      split_ifs <;> linarith [etat.hRU]
+      -- RU_new = max 0 (RU_base * (1 - β * r_new))
+      -- max garantit que le résultat est ≥ 0
+      simp [RU_new, calcul_RU]
+      apply le_max_left
     hr := by
       constructor
-      · unfold nouveau_r
+      · -- 0 ≤ r_new
+        simp [r_new, nouveau_r]
         split_ifs <;> linarith
-      · unfold nouveau_r
+      · -- r_new ≤ 1
+        simp [r_new, nouveau_r]
         split_ifs <;> linarith }
 
 /-- Profil de stratégies sur un horizon T -/
 def ProfilTemporel (n_joueurs : ℕ) := ℕ → Fin n_joueurs → Action
 
 /-- Payoff intertemporel d'un joueur sur T périodes -/
-def payoff_intertemporel
+noncomputable def payoff_intertemporel
     (params : ParamsRegulation)
     (etat_initial : EtatSysteme)
     (n_joueurs : ℕ)
@@ -270,7 +275,7 @@ example :
     h_β := by norm_num
     h_γ := by norm_num
   }
-  let etat_init : EtatSysteme := {
+  let _etat_init : EtatSysteme := {
     V := 1000.0
     D := 100.0
     RU := 50.0
@@ -281,7 +286,7 @@ example :
     hr := by constructor <;> norm_num
   }
   let T := 10
-  let n_joueurs := 10
+  let _n_joueurs := 10
   -- Vérification que la régulation est adéquate
   regulation_adequate params T
   := by
