@@ -37,19 +37,19 @@ theorem contrat_clos :
     exact A10_conservation_thermodynamique v.V v.D
 
 /-- Les transactions sont toujours valides et signées. -/
-corollary transactions_toujours_valides :
+theorem transactions_toujours_valides :
     ∀ (cu : CompteUtilisateur) (tx : Transaction), ValidSig cu tx :=
   (contrat_clos).left
 
 /-- Le revenu universel est toujours distribué intégralement. -/
-corollary RU_toujours_distribue :
+theorem RU_toujours_distribue :
     ∀ (U_t : ℝ) (beneficiaires : List CompteUtilisateur) (alloc : CompteUtilisateur → ℝ),
       (∀ cu ∈ beneficiaires, 0 ≤ alloc cu) →
       (beneficiaires.attach.map (fun ⟨cu, _⟩ => alloc cu)).sum = U_t :=
   (contrat_clos).right.left
 
 /-- La valeur vivante et le passif D restent non négatifs. -/
-corollary valeurs_toujours_positives :
+theorem valeurs_toujours_positives :
     ∀ (v : Valeurs), 0 ≤ v.V ∧ 0 ≤ v.D :=
   (contrat_clos).right.right
 
@@ -78,7 +78,8 @@ theorem contrat_clos_etendu :
   constructor
   · exact A12_distribution_RU
   constructor
-  · exact A10_conservation_thermodynamique
+  · intro v
+    exact A10_conservation_thermodynamique v.V v.D
   constructor
   · exact A2_absence_emission_dette
   · exact A4_exclusion_U_entreprise
