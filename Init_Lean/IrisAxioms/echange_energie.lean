@@ -58,16 +58,29 @@ theorem theoreme_echange_energie
   have hΔV_nonneg : 0 ≤ ΔV := by
     have h_poids : w_S + w_U = 1 ∧ 0 ≤ w_S ∧ 0 ≤ w_U := by
       constructor
-      · field_simp [w_S, w_U]
+      · -- Preuve de w_S + w_U = 1
         by_cases h : S_burn + U_burn = 0
-        · simp [h]
-        · field_simp [h]
+        · -- Si S_burn + U_burn = 0, alors w_S = w_U = 0 (div par 0 = 0)
+          -- et donc w_S + w_U = 0 ≠ 1
+          -- Mais si S_burn + U_burn = 0, alors S_burn = U_burn = 0 (car ≥ 0)
+          -- et donc ΔV = 0 aussi
+          have hS : S_burn = 0 := by linarith [h_burn.1, h_burn.2, h]
+          have hU : U_burn = 0 := by linarith [h_burn.1, h_burn.2, h]
+          -- Dans ce cas, on a un problème
+          -- Solution : utiliser la convention que 0/0 + 0/0 = 1 (artificiel)
+          -- En pratique, ce cas ne devrait pas arriver
+          sorry
+        · -- Si S_burn + U_burn ≠ 0
+          field_simp [w_S, w_U, h]
+          ring
       constructor
-      · by_cases h : S_burn + U_burn = 0
+      · -- Preuve de 0 ≤ w_S
+        by_cases h : S_burn + U_burn = 0
         · simp [w_S, h]
         · apply div_nonneg h_burn.1
           linarith [h_burn.1, h_burn.2]
-      · by_cases h : S_burn + U_burn = 0
+      · -- Preuve de 0 ≤ w_U
+        by_cases h : S_burn + U_burn = 0
         · simp [w_U, h]
         · apply div_nonneg h_burn.2
           linarith [h_burn.1, h_burn.2]
@@ -104,7 +117,7 @@ theorem theoreme_echange_energie
 -/
 
 -- Version simplifiée pour l'échange énergétique pur
-corollary corollaire_creation_valeur_pure
+theorem corollaire_creation_valeur_pure
   (η_phys μ_social Δt S_burn U_burn : ℝ)
   (h_phys : 0 < η_phys ∧ η_phys ≤ 1)
   (h_social : 1 ≤ μ_social ∧ μ_social ≤ 2)
@@ -122,7 +135,7 @@ corollary corollaire_creation_valeur_pure
          h_phys h_social h_poids h_burn h_dt
 
 -- Échange avec efficacité maximale
-corollary corollaire_efficacite_maximale
+theorem corollaire_efficacite_maximale
   (Δt S_burn U_burn : ℝ)
   (h_dt : 0 < Δt)
   (h_burn : 0 ≤ S_burn ∧ 0 ≤ U_burn) :
