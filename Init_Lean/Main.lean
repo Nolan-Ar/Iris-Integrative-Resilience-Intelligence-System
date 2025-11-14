@@ -1,8 +1,6 @@
 import IrisAxioms.iris_axioms
 import IrisAxioms.validation_correctifs
-import IrisAxioms.echange_energie
-import IrisAxioms.contrats_clos
-import IrisAxioms.theorie_jeux_avancee
+import IrisAxioms.iris_brique
 
 def main : IO Unit := do
   IO.println "╔════════════════════════════════════════════════════════════╗"
