@@ -59,14 +59,19 @@ theorem theoreme_echange_energie
     have h_poids : w_S + w_U = 1 ∧ 0 ≤ w_S ∧ 0 ≤ w_U := by
       constructor
       · field_simp [w_S, w_U]
-        rcases h_burn with ⟨hS, hU⟩
-        have h_total : 0 ≤ S_burn + U_burn := by linarith
-        rcases eq_zero_or_pos_of_nonneg h_total with h|h
-        · have : S_burn = 0 := by linarith
-          have : U_burn = 0 := by linarith
-          simp [w_S, w_U, this]
-        · field_simp [w_S, w_U, h.ne.symm]
-    exact A6_creation_valeur_energetique η_phys μ_social Δt w_S w_U S_burn U_burn 
+        by_cases h : S_burn + U_burn = 0
+        · simp [h]
+        · field_simp [h]
+      constructor
+      · by_cases h : S_burn + U_burn = 0
+        · simp [w_S, h]
+        · apply div_nonneg h_burn.1
+          linarith [h_burn.1, h_burn.2]
+      · by_cases h : S_burn + U_burn = 0
+        · simp [w_U, h]
+        · apply div_nonneg h_burn.2
+          linarith [h_burn.1, h_burn.2]
+    exact A6_creation_valeur_energetique η_phys μ_social Δt w_S w_U S_burn U_burn
             h_phys h_social h_poids h_burn h_dt
   
   -- 2. Distribution via A12
@@ -140,12 +145,12 @@ corollary corollaire_efficacite_maximale
 # APPLICATION NUMÉRIQUE
 -/
 
-example : 
-  let η_phys := 0.8
-  let μ_social := 1.5
-  let Δt := 1.0
-  let S_burn := 100.0
-  let U_burn := 50.0
+example :
+  let η_phys : ℝ := 0.8
+  let μ_social : ℝ := 1.5
+  let Δt : ℝ := 1.0
+  let S_burn : ℝ := 100.0
+  let U_burn : ℝ := 50.0
   let η := η_phys * μ_social
   let Et := (S_burn + U_burn) / 2
   let ΔV := η * Δt * Et
@@ -155,11 +160,13 @@ example :
   (0 ≤ S_burn ∧ 0 ≤ U_burn) ∧
   ΔV = 90.0 := by
   intro η_phys μ_social Δt S_burn U_burn η Et ΔV
-  have h_phys : 0 < η_phys ∧ η_phys ≤ 1 := by norm_num
-  have h_social : 1 ≤ μ_social ∧ μ_social ≤ 2 := by norm_num  
-  have h_burn : 0 ≤ S_burn ∧ 0 ≤ U_burn := by norm_num
-  refine ⟨h_phys, h_social, h_burn, ?_⟩
-  norm_num [η, Et, ΔV]
+  constructor
+  · norm_num
+  constructor
+  · norm_num
+  constructor
+  · norm_num
+  · norm_num
 
 #check theoreme_echange_energie
 #check corollaire_creation_valeur_pure
