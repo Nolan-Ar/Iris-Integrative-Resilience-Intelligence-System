@@ -1,3 +1,8 @@
+import Mathlib.Data.Real.Basic
+import Mathlib.Tactic
+import Mathlib.Data.List.Basic
+import IrisAxioms.iris_axioms_extended
+
 /-!
   IRIS — Théorèmes Étendus
 
@@ -14,11 +19,6 @@
   - Section 7 : Théorèmes de Circulation (T11-T13)
   - Section 8 : Théorèmes Thermodynamiques (T14-T16)
 -/
-
-import Mathlib.Data.Real.Basic
-import Mathlib.Tactic
-import Mathlib.Data.List.Basic
-import IrisAxioms.iris_axioms_extended
 
 open IrisAxiomsExtended
 

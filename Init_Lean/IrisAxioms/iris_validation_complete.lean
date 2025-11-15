@@ -1,3 +1,9 @@
+import Mathlib.Data.Real.Basic
+import Mathlib.Tactic
+import Mathlib.Data.List.Basic
+import IrisAxioms.iris_axioms_extended
+import IrisAxioms.iris_theoremes_extended
+
 /-!
   IRIS — Validation Complète
 
@@ -14,12 +20,6 @@
   - Section 7 : Scénarios d'attaque
   - Section 8 : Tests de cohérence globale
 -/
-
-import Mathlib.Data.Real.Basic
-import Mathlib.Tactic
-import Mathlib.Data.List.Basic
-import IrisAxioms.iris_axioms_extended
-import IrisAxioms.iris_theoremes_extended
 
 open IrisAxiomsExtended
 open IrisTheoremesExtended

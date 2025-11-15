@@ -1,3 +1,9 @@
+import Mathlib.Data.Real.Basic
+import Mathlib.Tactic
+import Mathlib.Data.List.Basic
+import IrisAxioms.iris_axioms_extended
+import IrisAxioms.iris_theoremes_extended
+
 /-!
   IRIS — Exemples Numériques
 
@@ -10,12 +16,6 @@
   - Section 3 : Scénarios Complets (cycle économique, stacking, TAP)
   - Section 4 : Cas Limites et Situations Exceptionnelles
 -/
-
-import Mathlib.Data.Real.Basic
-import Mathlib.Tactic
-import Mathlib.Data.List.Basic
-import IrisAxioms.iris_axioms_extended
-import IrisAxioms.iris_theoremes_extended
 
 open IrisAxiomsExtended
 
