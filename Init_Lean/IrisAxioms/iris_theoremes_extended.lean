@@ -163,11 +163,9 @@ theorem T4_etat_stationnaire_possible :
     h_V_on := by norm_num,
     h_V_immo := by norm_num
   }
-  exists sys
-  constructor
-  · linarith [sys.h_V]
-  constructor
-  · linarith [sys.h_D]
+  refine ⟨sys, ?_, ?_, ?_⟩
+  · exact sys.h_V
+  · exact sys.h_D
   · exact sys.h_conservation
 
 /-! # Section 4 : THÉORÈMES D'ÉQUITÉ (T5-T6) -/
@@ -304,8 +302,8 @@ theorem T13_distribution_totale
     let part_treso := 0.6 * ΔV
     part_collab + part_treso = ΔV := by
   intro part_collab part_treso
-  have := A22_distribution_organique ce ΔV h_pos
-  linarith
+  have h := A22_distribution_organique ce ΔV h_pos
+  simpa [part_collab, part_treso] using h
 
 /-! # Section 8 : THÉORÈMES THERMODYNAMIQUES (T14-T16) -/
 
