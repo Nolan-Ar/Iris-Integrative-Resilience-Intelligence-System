@@ -343,6 +343,7 @@ example :
   let TAP_total := (ce.TAP_en_cours.map (·.montant_avance)).sum
   TAP_total ≤ 0.8 * V_reserve := by
   intro ce V_reserve TAP_total
+  simp [List.map, List.sum]
   norm_num
 
 /-! ## Test distribution 40/60 -/
@@ -367,13 +368,13 @@ theorem scenario_double_spending_impossible :
       montant := cu.wallet_V * 0.8,
       signature := ⟨"sig1"⟩,
       timestamp := 1000,
-      h_montant := by nlinarith [cu.h_wallet_V]
+      h_montant := by positivity
     }
     let tx2 : Transaction := {
       montant := cu.wallet_V * 0.8,
       signature := ⟨"sig2"⟩,
       timestamp := 1001,
-      h_montant := by nlinarith [cu.h_wallet_V]
+      h_montant := by positivity
     }
     tx1.montant + tx2.montant > cu.wallet_V →
     ¬(cu.wallet_V ≥ tx1.montant ∧ cu.wallet_V ≥ tx2.montant ∧
@@ -399,8 +400,8 @@ theorem scenario_pas_creation_frauduleuse :
   intro η_phys μ_social Δt w_S w_U S_burn U_burn
   intro h_phys h_social h_convexe h_burn h_dt h_zero
   intro η E ΔV
-  simp [E, ΔV]
-  nlinarith [h_zero.1, h_zero.2, h_convexe.2.1, h_convexe.2.2]
+  simp only [h_zero.1, h_zero.2]
+  ring
 
 /-! ## Scénario 3 : Attaque Sybil (multiples comptes) -/
 

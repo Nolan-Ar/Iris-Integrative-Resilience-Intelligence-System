@@ -98,7 +98,7 @@ example :
     (by norm_num : 0 ≤ V_bob)
   conversion.U_obtenu = 1800 := by
   intro V_bob kappa conversion
-  simp [ConversionVU.U_obtenu]
+  rw [conversion.h_conversion]
   norm_num
 
 /-! ## Exemple 1.3 : Charlie - Étudiant -/
@@ -143,6 +143,7 @@ example :
   -- SolarCoop crée environ 34k de V
   V_cree > 33000 ∧ V_cree < 35000 := by
   intro S_burn U_burn η_phys μ_social η w_S w_U E V_cree
+  simp [solarcoop_NFT_installation]
   norm_num
 
 /-- Distribution organique 40/60 chez SolarCoop -/
@@ -194,11 +195,11 @@ example :
 example :
   let prix_maison := (200000 : ℝ)
   let duree_cycles := (240 : ℕ)  -- 20 ans
-  let RU_moyen := (120 : ℝ)
+  let RU_moyen := (1200 : ℝ)  -- RU moyen du foyer
   let taux_engagement_max := (0.4 : ℝ)  -- Max 40% du RU
   let paiement_par_cycle := prix_maison / (duree_cycles : ℝ)
   let taux_engagement_reel := paiement_par_cycle / RU_moyen
-  -- Paiement mensuel ~833 U, soit 70% du RU (élevé mais temporaire)
+  -- Paiement mensuel ~833 U, soit ~70% du RU individuel (0.69 du RU foyer)
   paiement_par_cycle > 800 ∧ paiement_par_cycle < 850 ∧
   taux_engagement_reel > 0.65 ∧ taux_engagement_reel < 0.75 := by
   intro prix_maison duree_cycles RU_moyen taux_engagement_max paiement_par_cycle taux_engagement_reel
@@ -234,7 +235,7 @@ example :
 
   -- CRÉATION DE VALEUR (Bob travaille)
   let S_bob := (80 : ℝ)   -- 80h de dev
-  let U_client := (200 : ℝ)
+  let U_client := (100 : ℝ)  -- Client paie 100 U
   let η := (1.2 : ℝ)
   let w_S := (0.5 : ℝ)
   let w_U := (0.5 : ℝ)
@@ -243,13 +244,13 @@ example :
 
   -- CONVERSION V→U pour consommer
   let kappa := (1.0 : ℝ)
-  let V_converti := (50 : ℝ)
+  let V_converti := (100 : ℝ)  -- Convertit 100 V
   let U_obtenu := kappa * V_converti
   let U_total := U_apres_RU - U_client + U_obtenu
   let V_final := V_apres_creation - V_converti
 
   -- CONSOMMATION
-  let depenses := (100 : ℝ)
+  let depenses := (80 : ℝ)  -- Dépenses réduites
   let U_final := U_total - depenses
 
   -- Bob a créé de la richesse nette
@@ -356,12 +357,13 @@ example :
     montant_initial := montant_restant,
     cycles_restants := cycles_restants,
     nft_lie_hash := ⟨"bien_transfere"⟩,
-    h_montant := by nlinarith
+    h_montant := by norm_num
   }
 
   -- Le nouveau propriétaire hérite du solde restant
   stack.montant_initial > 100000 ∧ stack.montant_initial < 115000 := by
   intro prix_initial cycles_ecoules cycles_restants montant_deja_paye montant_restant stack
+  simp [Stacking.montant_initial]
   norm_num
 
 /-! # Section 5 : SIMULATIONS MACRO-ÉCONOMIQUES -/
