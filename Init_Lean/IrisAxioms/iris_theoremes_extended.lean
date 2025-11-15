@@ -94,7 +94,6 @@ theorem T1_conservation_globale_init (oracle : Oracle) :
     let V_init := (oracle.biens_enregistres.map (·.valeur_effective)).sum
     let D_init := V_init
     V_init = D_init := by
-  intro V_init D_init
   exact A13_neutralite_initiale oracle
 
 /--
@@ -120,7 +119,6 @@ theorem T2_pas_creation_monetaire
     let E := w_S * S_burn + w_U * U_burn
     let ΔV := η * Δt * E
     0 ≤ ΔV := by
-  intro η E ΔV
   exact A6_creation_valeur_energetique η_phys μ_social Δt w_S w_U S_burn U_burn
     h_phys h_social h_convexe h_burn h_dt
 
@@ -135,7 +133,6 @@ theorem T3_thermometre_equilibre (rad : RAD)
     (h_stable : 0.85 ≤ thermometre rad ∧ thermometre rad ≤ 1.15) :
     let r_t := thermometre rad
     0.85 ≤ r_t ∧ r_t ≤ 1.15 := by
-  intro r_t
   exact h_stable
 
 /-! ## T4 : Existence d'un état stationnaire
@@ -199,7 +196,7 @@ theorem T6_distribution_uniforme
     let alloc := fun (_ : CompteUtilisateur) => U_par_personne
     (∀ cu ∈ beneficiaires, 0 ≤ alloc cu) →
     (beneficiaires.attach.map (fun ⟨cu, _⟩ => alloc cu)).sum = U_total := by
-  intro U_par_personne alloc h_pos
+  intro h_pos
   exact A12_distribution_RU U_total beneficiaires alloc h_pos
 
 /-! # Section 5 : THÉORÈMES DE SÉCURITÉ (T7-T8) -/
@@ -271,7 +268,6 @@ theorem T11_conversion_bornee
     (h_kappa : 0.5 ≤ kappa ∧ kappa ≤ 2.0) :
     let U_obtenu := kappa * V_source
     0 ≤ U_obtenu ∧ U_obtenu ≤ 2.0 * V_source := by
-  intro U_obtenu
   have h := A15_conversion_regulee V_source kappa h_V h_kappa
   constructor
   · exact h
@@ -301,9 +297,9 @@ theorem T13_distribution_totale
     let part_collab := 0.4 * ΔV
     let part_treso := 0.6 * ΔV
     part_collab + part_treso = ΔV := by
-  intro part_collab part_treso
   have h := A22_distribution_organique ce ΔV h_pos
-  simpa [part_collab, part_treso] using h
+  simp [part_collab, part_treso]
+  exact h
 
 /-! # Section 8 : THÉORÈMES THERMODYNAMIQUES (T14-T16) -/
 
@@ -315,7 +311,6 @@ theorem T13_distribution_totale
 theorem T14_thermometre_bien_defini (rad : RAD) :
     let r_t := thermometre rad
     r_t = rad.D_total / rad.V_on_total := by
-  intro r_t
   rfl
 
 /-! ## T15 : η reste dans [0.5, 2.0]
