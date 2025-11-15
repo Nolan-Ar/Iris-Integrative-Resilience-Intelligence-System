@@ -126,7 +126,8 @@ structure RAD where
   h_eta : 0.5 ≤ eta ∧ eta ≤ 2.0
   h_kappa : 0.5 ≤ kappa ∧ kappa ≤ 2.0
 
-def thermometre (rad : RAD) : ℝ := rad.D_total / rad.V_on_total
+noncomputable def thermometre (rad : RAD) : ℝ :=
+  rad.D_total / rad.V_on_total
 
 /-! ### Titres à Promesse Productive (TAP) -/
 
