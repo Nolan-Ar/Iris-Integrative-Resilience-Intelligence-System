@@ -1,3 +1,5 @@
+set_option linter.unusedVariables false
+
 import Mathlib.Data.Real.Basic
 import Mathlib.Tactic
 import Mathlib.Data.List.Basic
