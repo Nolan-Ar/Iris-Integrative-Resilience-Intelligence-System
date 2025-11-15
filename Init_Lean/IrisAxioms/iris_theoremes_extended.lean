@@ -67,9 +67,7 @@ theorem T1_conservation_globale_init (oracle : Oracle) :
     let V_init := (oracle.biens_enregistres.map (·.valeur_effective)).sum
     let D_init := V_init
     V_init = D_init := by
-  intro V_init D_init
-  -- Directement donné par l'axiome A13
-  simpa [V_init, D_init] using A13_neutralite_initiale oracle
+  exact A13_neutralite_initiale oracle
 
 /-! ## T1bis : Conservation du patrimoine
 
@@ -94,12 +92,8 @@ theorem T2_pas_creation_monetaire
     let E := w_S * S_burn + w_U * U_burn
     let ΔV := η * Δt * E
     0 ≤ ΔV := by
-  intro η E ΔV
-  -- Directement A6 dans sa forme détaillée
-  have := A6_creation_valeur_energetique η_phys μ_social Δt w_S w_U S_burn U_burn
-  specialize this h_phys h_social h_convexe h_burn h_dt
-  -- La définition de ΔV est la même que dans l'axiome
-  simpa [η, E, ΔV] using this
+  exact A6_creation_valeur_energetique η_phys μ_social Δt w_S w_U S_burn U_burn
+    h_phys h_social h_convexe h_burn h_dt
 
 /-! # Section 3 : THÉORÈMES DE STABILITÉ (T3-T4) -/
 
@@ -112,8 +106,7 @@ theorem T3_thermometre_equilibre (rad : RAD)
     (h_stable : 0.85 ≤ thermometre rad ∧ thermometre rad ≤ 1.15) :
     let r_t := thermometre rad
     0.85 ≤ r_t ∧ r_t ≤ 1.15 := by
-  intro r_t
-  simpa [r_t] using h_stable
+  exact h_stable
 
 /-! ## T4 : Existence d'un état stationnaire
 
@@ -180,8 +173,7 @@ theorem T6_distribution_uniforme
     let alloc := fun (_ : CompteUtilisateur) => U_par_personne
     (∀ cu ∈ beneficiaires, 0 ≤ alloc cu) →
     (beneficiaires.attach.map (fun ⟨cu, _⟩ => alloc cu)).sum = U_total := by
-  intro U_par_personne alloc h_pos
-  -- On applique A12 en choisissant une allocation constante
+  intro h_pos
   exact A12_distribution_RU U_total beneficiaires alloc h_pos
 
 /-! # Section 5 : THÉORÈMES DE SÉCURITÉ (T7-T8) -/
@@ -255,21 +247,15 @@ theorem T11_conversion_bornee
     (h_kappa : 0.5 ≤ kappa ∧ kappa ≤ 2.0) :
     let U_obtenu := kappa * V_source
     0 ≤ U_obtenu ∧ U_obtenu ≤ 2.0 * V_source := by
-  intro U_obtenu
-  have h_reg := A15_conversion_regulee V_source kappa h_V h_kappa
-  have h_pos : 0 ≤ U_obtenu := by simpa [U_obtenu] using h_reg
-  -- Pour la borne supérieure, on utilise simplement κ ≤ 2
-  have h_le_two : kappa ≤ 2.0 := h_kappa.right
-  have h_mult : U_obtenu ≤ 2.0 * V_source := by
-    have : U_obtenu = kappa * V_source := by simp [U_obtenu]
-    -- Si V_source ≥ 0 et kappa ≤ 2, alors kappa * V_source ≤ 2 * V_source
-    have := mul_le_mul_of_nonneg_right h_le_two h_V
-    simpa [U_obtenu] using this
-  exact ⟨h_pos, h_mult⟩
+  have h := A15_conversion_regulee V_source kappa h_V h_kappa
+  constructor
+  · exact h
+  · nlinarith [h_kappa.2, h_V]
 
-/-! ## T12 : Stacking conservatif
+/-! ## T12 : Stacking conserve l'énergie
+  Source : Axiome A17
 
-  Le stacking ne crée ni ne détruit de valeur comptable : V_avance = D_stack.
+  ΔV_avance = ΔD_stack (neutralité)
 -/
 theorem T12_stacking_conservatif
     (stack : Stacking) (D_stack : ℝ)
@@ -287,10 +273,9 @@ theorem T13_distribution_totale
     let part_collab := 0.4 * ΔV
     let part_treso := 0.6 * ΔV
     part_collab + part_treso = ΔV := by
-  intro part_collab part_treso
-  -- Directement A22
-  have := A22_distribution_organique ce ΔV h_pos
-  simpa [part_collab, part_treso] using this
+  have h := A22_distribution_organique ce ΔV h_pos
+  simp [part_collab, part_treso]
+  exact h
 
 /-! # Section 8 : THÉORÈMES THERMODYNAMIQUES (T14-T16) -/
 
@@ -301,9 +286,7 @@ theorem T13_distribution_totale
 theorem T14_thermometre_bien_defini (rad : RAD) :
     let r_t := thermometre rad
     r_t = rad.D_total / rad.V_on_total := by
-  intro r_t
-  -- Définition directe de thermometre
-  simp [thermometre, r_t]
+  rfl
 
 -! ## T15 : η reste dans [0.5, 2.0]
   Source : Axiome A20
