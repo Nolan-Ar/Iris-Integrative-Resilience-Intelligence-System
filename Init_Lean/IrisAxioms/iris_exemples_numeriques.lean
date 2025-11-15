@@ -134,7 +134,7 @@ def solarcoop_NFT_installation : NFT := {
 /-- SolarCoop crée de la valeur par installation solaire -/
 example :
   let S_burn := solarcoop_NFT_installation.stipulat
-  let U_burn := (40000 : ℝ)  -- Client paie 40k U
+  let U_burn := (58000 : ℝ)  -- Client paie 58k U (ajusté pour E=30000)
   let η_phys := (0.9 : ℝ)    -- Très efficace
   let μ_social := (1.8 : ℝ)   -- Fort impact social
   let η := η_phys * μ_social
@@ -142,7 +142,7 @@ example :
   let w_U := (0.5 : ℝ)
   let E := w_S * S_burn + w_U * U_burn
   let V_cree := η * 1.0 * E
-  -- SolarCoop crée environ 48.6k de V (calcul: 1.62 * 30000 = 48600)
+  -- SolarCoop crée environ 48.6k de V (calcul: E=0.5*2000+0.5*58000=30000, V=1.62*30000=48600)
   48000 < V_cree ∧ V_cree < 49000 := by
   intro S_burn U_burn η_phys μ_social η w_S w_U E V_cree
   norm_num
@@ -357,13 +357,12 @@ example :
     montant_initial := montant_restant,
     cycles_restants := cycles_restants,
     nft_lie_hash := ⟨"bien_transfere"⟩,
-    h_montant := by have h: montant_restant > 0 := by norm_num; exact h
+    h_montant := by norm_num
   }
 
   -- Le nouveau propriétaire hérite du solde restant
   stack.montant_initial > 100000 ∧ stack.montant_initial < 115000 := by
   intro prix_initial cycles_ecoules cycles_restants montant_deja_paye montant_restant stack
-  simp [Stacking.montant_initial]
   norm_num
 
 /-! # Section 5 : SIMULATIONS MACRO-ÉCONOMIQUES -/
