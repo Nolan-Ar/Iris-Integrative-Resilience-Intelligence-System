@@ -1,3 +1,7 @@
+import Mathlib.Data.Real.Basic
+import Mathlib.Tactic
+import Mathlib.Data.List.Basic
+
 /-!
   IRIS — Axiomes Étendus (A1-A27)
 
@@ -15,10 +19,6 @@
   - Section 8 : Nouveaux axiomes - Sécurité et Gouvernance (A23-A25)
   - Section 9 : Nouveaux axiomes - NFT et Patrimoine (A26-A27)
 -/
-
-import Mathlib.Data.Real.Basic
-import Mathlib.Tactic
-import Mathlib.Data.List.Basic
 
 namespace IrisAxiomsExtended
 
