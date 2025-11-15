@@ -174,7 +174,8 @@ theorem T6_distribution_uniforme
     (∀ cu ∈ beneficiaires, 0 ≤ alloc cu) →
     (beneficiaires.attach.map (fun ⟨cu, _⟩ => alloc cu)).sum = U_total := by
   intro h_pos
-  exact A12_distribution_RU U_total beneficiaires alloc h_pos
+  show (beneficiaires.attach.map (fun ⟨cu, _⟩ => (U_total / (N : ℝ)))).sum = U_total
+  exact A12_distribution_RU U_total beneficiaires (fun _ => U_total / (N : ℝ)) h_pos
 
 /-! # Section 5 : THÉORÈMES DE SÉCURITÉ (T7-T8) -/
 
@@ -273,8 +274,8 @@ theorem T13_distribution_totale
     let part_collab := 0.4 * ΔV
     let part_treso := 0.6 * ΔV
     part_collab + part_treso = ΔV := by
+  show 0.4 * ΔV + 0.6 * ΔV = ΔV
   have h := A22_distribution_organique ce ΔV h_pos
-  simp [part_collab, part_treso]
   exact h
 
 /-! # Section 8 : THÉORÈMES THERMODYNAMIQUES (T14-T16) -/
@@ -288,7 +289,7 @@ theorem T14_thermometre_bien_defini (rad : RAD) :
     r_t = rad.D_total / rad.V_on_total := by
   rfl
 
--! ## T15 : η reste dans [0.5, 2.0]
+/-! ## T15 : η reste dans [0.5, 2.0]
   Source : Axiome A20
 
   A20 donne à la fois des règles d’ajustement et la borne 0.5 ≤ η_apres ≤ 2.0.
