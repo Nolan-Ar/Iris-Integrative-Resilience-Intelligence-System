@@ -61,7 +61,10 @@ theorem test_conservation_coherente :
     let V_total := v.V
     let D_total := v.D
     0 ≤ V_total ∧ 0 ≤ D_total := by
-  exact ⟨v.hV, v.hD⟩
+  intro v V_total D_total
+  constructor
+  · exact v.hV
+  · exact v.hD
 
 /-! ## Test distribution RU -/
 
@@ -99,6 +102,7 @@ example :
   let V_total := bien1.valeur_effective + bien2.valeur_effective
   let D_total := V_total
   V_total = 525000 ∧ D_total = V_total := by
+  intro bien1 bien2 oracle V_total D_total
   norm_num
 
 /-! ## Test unicité des biens -/
@@ -118,6 +122,7 @@ theorem test_unicite_biens_detection :
       h_valeur := by norm_num
     }
     bien1 = bien2 := by
+  intro hash_commun bien1 bien2
   exact A14_unicite_biens bien1 bien2 rfl
 
 /-! # Section 3 : TESTS CONVERSION ET CIRCULATION -/
@@ -129,6 +134,7 @@ example :
   let kappa := (0.8 : ℝ)
   let U_obtenu := kappa * V_source
   U_obtenu = 800 := by
+  intro V_source kappa U_obtenu
   norm_num
 
 example :
@@ -136,6 +142,7 @@ example :
   let kappa := (1.5 : ℝ)
   let U_obtenu := kappa * V_source
   U_obtenu = 1500 := by
+  intro V_source kappa U_obtenu
   norm_num
 
 /-! ## Test bornes de κ -/
@@ -166,6 +173,7 @@ example :
   }
   -- En fin de cycle, U_actuel devrait être détruit
   wallet.U_actuel ≥ 0 := by
+  intro wallet
   exact wallet.h_U
 
 /-! # Section 4 : TESTS STACKING -/
@@ -192,6 +200,7 @@ example :
   let nb_cycles := (60 : ℕ)
   let paiement_par_cycle := montant_total / (nb_cycles : ℝ)
   paiement_par_cycle = 2000 := by
+  intro montant_total nb_cycles paiement_par_cycle
   norm_num
 
 /-! ## Test transfert engagement avec NFT -/
@@ -252,7 +261,7 @@ example :
   let r_t := thermometre rad
   0.85 ≤ r_t ∧ r_t ≤ 1.15 := by
   intro rad r_t
-  simp [thermometre]
+  unfold r_t thermometre
   norm_num
 
 /-! ## Test ajustement η en surchauffe -/
@@ -262,6 +271,7 @@ example :
   let η_avant := (1.5 : ℝ)
   let η_apres := (1.3 : ℝ)
   r_t > 1.15 → η_apres < η_avant := by
+  intro r_t η_avant η_apres
   norm_num
 
 /-! ## Test ajustement η en léthargie -/
@@ -271,6 +281,7 @@ example :
   let η_avant := (1.0 : ℝ)
   let η_apres := (1.2 : ℝ)
   r_t < 0.85 → η_apres > η_avant := by
+  intro r_t η_avant η_apres
   norm_num
 
 /-! # Section 6 : TESTS SÉCURITÉ -/
@@ -300,6 +311,7 @@ theorem test_anti_sybil_detection :
       h_cnp := by norm_num
     }
     cu1 = cu2 := by
+  intro tu vc cu1 cu2
   exact A23_anti_sybil cu1 cu2 ⟨rfl, rfl⟩
 
 /-! ## Test limite capacité TAP -/
@@ -330,6 +342,7 @@ example :
   let V_reserve := ce.tresorerie_V + (ce.NFT_financiers.map (·.valeur)).sum
   let TAP_total := (ce.TAP_en_cours.map (·.montant_avance)).sum
   TAP_total ≤ 0.8 * V_reserve := by
+  intro ce V_reserve TAP_total
   norm_num
 
 /-! ## Test distribution 40/60 -/
@@ -341,6 +354,7 @@ example :
   part_collaborateurs = 4000 ∧
   part_tresorerie = 6000 ∧
   part_collaborateurs + part_tresorerie = ΔV := by
+  intro ΔV part_collaborateurs part_tresorerie
   norm_num
 
 /-! # Section 7 : SCÉNARIOS D'ATTAQUE -/
@@ -415,6 +429,7 @@ theorem scenario_sybil_bloque :
     }
     -- Les deux comptes sont identiques (Sybil détecté)
     compte_principal = compte_frauduleux := by
+  intro personne_tu personne_vc compte_principal compte_frauduleux
   exact A23_anti_sybil compte_principal compte_frauduleux ⟨rfl, rfl⟩
 
 /-! # Section 8 : TESTS DE COHÉRENCE GLOBALE -/
@@ -437,6 +452,7 @@ example :
     h_V_immo := by norm_num
   }
   sys.V_total = sys.V_on + sys.V_immo := by
+  intro sys
   exact sys.h_conservation
 
 /-! ## Test toutes grandeurs positives -/
