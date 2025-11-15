@@ -1,10 +1,10 @@
-set_option linter.unusedVariables false
-
 import Mathlib.Data.Real.Basic
 import Mathlib.Tactic
 import Mathlib.Data.List.Basic
 import IrisAxioms.iris_axioms_extended
 import IrisAxioms.iris_theoremes_extended
+
+set_option linter.unusedVariables false
 
 /-!
   IRIS — Exemples Numériques
