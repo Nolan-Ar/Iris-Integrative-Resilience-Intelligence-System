@@ -49,7 +49,7 @@ example :
   let RU_calcule := (1 - rho) * V_on_systeme / ((T : ℝ) * (N_utilisateurs : ℝ))
   -- Alice reçoit environ 33.33 U par mois
   RU_calcule > 30 ∧ RU_calcule < 35 := by
-  intro RU_alice N_utilisateurs V_on_systeme rho T RU_calcule
+  simp [RU_calcule, rho, V_on_systeme, T, N_utilisateurs]
   norm_num
 
 /-- Alice crée de la valeur par son travail -/
@@ -67,8 +67,8 @@ example :
   let V_cree := η * 1.0 * E  -- Δt = 1 cycle
   -- Alice crée environ 72 unités de V
   V_cree > 60 ∧ V_cree < 80 := by
-  intro heures_travail qual_coefficient S_alice prix_reparation
-  intro η_phys μ_social η w_S w_U E V_cree
+  simp [V_cree, E, w_S, w_U, S_alice, prix_reparation,
+        η, η_phys, μ_social, heures_travail, qual_coefficient]
   norm_num
 
 /-- Budget mensuel d'Alice -/
@@ -81,7 +81,6 @@ example :
   let U_final := U_disponible - consommation
   -- Alice a dépensé presque tout son RU
   U_final > -30 ∧ U_final < 0 := by
-  intro RU stackings abonnements consommation U_disponible U_final
   norm_num
 
 /-! ## Exemple 1.2 : Bob - Développeur logiciel -/
@@ -111,7 +110,6 @@ example :
   let taux_RU := RU_charlie / total_ressources
   -- 89% de ses ressources viennent du RU
   taux_RU > 0.85 ∧ taux_RU < 0.95 := by
-  intro RU_charlie creation_valeur total_ressources taux_RU
   norm_num
 
 /-! # Section 2 : EXEMPLES ENTREPRISES -/
@@ -142,7 +140,6 @@ example :
   let V_cree := η * 1.0 * E
   -- SolarCoop crée environ 34k de V
   V_cree > 33000 ∧ V_cree < 35000 := by
-  intro S_burn U_burn η_phys μ_social η w_S w_U E V_cree
   norm_num
 
 /-- Distribution organique 40/60 chez SolarCoop -/
@@ -156,7 +153,6 @@ example :
   part_par_collab > 2700 ∧ part_par_collab < 2750 ∧
   -- Trésorerie reçoit 20400 V
   part_tresorerie > 20000 ∧ part_tresorerie < 21000 := by
-  intro V_cree nb_collaborateurs part_collaborateurs part_par_collab part_tresorerie
   norm_num
 
 /-! ## Exemple 2.2 : BioFarm - Agriculture biologique locale -/
@@ -169,7 +165,6 @@ example :
   let TAP_emis := (110000 : ℝ)
   -- TAP respecte la capacité max
   TAP_emis <= capacite_TAP := by
-  intro tresorerie NFT_financiers_valeur capacite_TAP TAP_emis
   norm_num
 
 /-- NFT financier BioFarm avec dividende -/
@@ -183,8 +178,6 @@ example :
   let part_investisseur := (investissement_initial / 50000) * V_div_total
   -- Investisseur reçoit ~1050 V de dividende (21% ROI)
   part_investisseur > 1000 ∧ part_investisseur < 1100 := by
-  intro investissement_initial V_produit_annuel V_burn_TAP V_reserve
-  intro lambda_div V_div_total part_investisseur
   norm_num
 
 /-! # Section 3 : SCÉNARIOS COMPLETS -/
@@ -202,8 +195,6 @@ example :
   -- Paiement mensuel ~833 U, soit 70% du RU (élevé mais temporaire)
   paiement_par_cycle > 800 ∧ paiement_par_cycle < 850 ∧
   taux_engagement_reel > 0.65 ∧ taux_engagement_reel < 0.75 := by
-  intro prix_maison duree_cycles RU_moyen taux_engagement_max
-  intro paiement_par_cycle taux_engagement_reel
   norm_num
 
 /-- Neutralité énergétique du stacking -/
@@ -256,9 +247,6 @@ example :
 
   -- Bob a créé de la richesse nette
   V_final > V_initial ∧ U_final > 0 := by
-  intro V_initial U_initial RU_recu U_apres_RU S_bob U_client η w_S w_U
-  intro V_cree V_apres_creation kappa V_converti U_obtenu U_total V_final
-  intro depenses U_final
   norm_num
 
 /-! ## Scénario 3.3 : Régulation thermométrique en action -/
@@ -281,8 +269,6 @@ example :
   let r_t5 := D_total_t5 / V_on_t5  -- 1.05 (équilibre)
 
   r_t0 > 1.15 ∧ creation_ralentie ∧ r_t5 < 1.15 ∧ r_t5 > 0.85 := by
-  intro D_total_t0 V_on_t0 r_t0 η_t0 η_t1 creation_ralentie
-  intro D_total_t5 V_on_t5 r_t5
   norm_num
 
 /-! # Section 4 : CAS LIMITES ET SITUATIONS EXCEPTIONNELLES -/
@@ -306,8 +292,6 @@ example :
   let perte_par_NFT := (NFT_financiers - reliquat) / NFT_financiers
 
   peut_rembourser ∧ reliquat = 30000 ∧ perte_par_NFT > 0.6 := by
-  intro V_tresorerie NFT_financiers TAP_en_cours reserve_totale
-  intro peut_rembourser reliquat perte_par_NFT
   norm_num
 
 /-! ## Cas 4.2 : Crise systémique (chute V_on de 30%) -/
@@ -331,8 +315,6 @@ example :
 
   RU_c1 = 108 ∧ RU_c2 > 97 ∧ RU_c2 < 98 ∧
   reduction_totale > 0.25 ∧ reduction_totale < 0.30 := by
-  intro V_on_avant V_on_apres_crise RU_avant alpha_lissage
-  intro RU_c1 RU_c2 RU_c3 reduction_totale
   norm_num
 
 /-! ## Cas 4.3 : Utilisateur inactif (pas de transactions) -/
@@ -346,7 +328,6 @@ example :
   let U_debut_cycle_suivant := (0 : ℝ)
 
   U_fin_cycle = 120 ∧ U_debut_cycle_suivant = 0 := by
-  intro RU_recu depenses U_fin_cycle U_debut_cycle_suivant
   norm_num
 
 /-! ## Cas 4.4 : Transfert de NFT avec stacking attaché -/
@@ -368,8 +349,6 @@ example :
 
   -- Le nouveau propriétaire hérite du solde restant
   stack.montant_initial > 100000 ∧ stack.montant_initial < 115000 := by
-  intro prix_initial cycles_ecoules cycles_restants
-  intro montant_deja_paye montant_restant stack
   norm_num
 
 /-! # Section 5 : SIMULATIONS MACRO-ÉCONOMIQUES -/
@@ -389,7 +368,6 @@ example :
   -- Thermomètre à 1.04 (équilibre sain)
   -- RU ~31.25 U/mois par personne
   r_t > 1.0 ∧ r_t < 1.1 ∧ RU_par_user > 30 ∧ RU_par_user < 32 := by
-  intro N_users V_on_total D_total rho T r_t RU_par_user
   norm_num
 
 /-! ## Simulation 5.2 : État stationnaire (croissance zéro) -/
@@ -406,7 +384,6 @@ example :
 
   -- Système en équilibre parfait
   balance = 0 := by
-  intro V_creation_cycle V_combustion_cycle V_immo_in V_immo_out V_RU_distribue balance
   norm_num
 
 end IrisExemplesNumeriques
