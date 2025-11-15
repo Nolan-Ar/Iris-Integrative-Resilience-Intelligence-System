@@ -173,7 +173,7 @@ theorem T6_distribution_uniforme
     let alloc := fun (_ : CompteUtilisateur) => U_par_personne
     (∀ cu ∈ beneficiaires, 0 ≤ alloc cu) →
     (beneficiaires.attach.map (fun ⟨cu, _⟩ => alloc cu)).sum = U_total := by
-  intro h_pos
+  intro U_par_personne alloc h_pos
   exact A12_distribution_RU U_total beneficiaires alloc h_pos
 
 /-! # Section 5 : THÉORÈMES DE SÉCURITÉ (T7-T8) -/
@@ -273,7 +273,8 @@ theorem T13_distribution_totale
     let part_collab := 0.4 * ΔV
     let part_treso := 0.6 * ΔV
     part_collab + part_treso = ΔV := by
-  exact A22_distribution_organique ce ΔV h_pos
+  have := A22_distribution_organique ce ΔV h_pos
+  simpa using this
 
 /-! # Section 8 : THÉORÈMES THERMODYNAMIQUES (T14-T16) -/
 
